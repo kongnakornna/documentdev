@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#xe01;&#xe32;&#xe23;&#xe2d;&#xe2d;&#xe01;&#xe41;&#xe1a;&#xe1a; CI&sol;CD Workflow &#xe2a;&#xe2d;&#xe14;&#xe04;&#xe25;&#xe49;&#xe2d;&#xe07;&#xe01;&#xe31;&#xe1a; Git Flow</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h2 id="การออกแบบ-cicd-workflow-สอดคล้องกับ-git-flow">การออกแบบ CI/CD Workflow สอดคล้องกับ Git Flow</h2>
+<ul>
+<li>ระบบ CI/CD ที่ออกแบบนี้จะรองรับ Git Flow โดยมี 3 environments หลัก (Development, Staging, Production) และใช้ GitHub Actions เป็นตัวอย่าง<a href="https://codefresh.io/learn/github-actions/deployment-with-github-actions-quick-tutorial-and-5-best-practices/">^1</a></li>
+</ul>
+<h2 id="สถาปัตยกรรม-cicd-overview">สถาปัตยกรรม CI/CD Overview</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                     GIT FLOW BRANCHES                        │
+├──────────────┬──────────────┬──────────────┬────────────────┤
+│   Feature    │   Develop    │   Release    │     Main       │
+│   Branches   │              │   Branches   │  (Production)  │
+└──────┬───────┴──────┬───────┴──────┬───────┴────────┬───────┘
+       │              │              │                │
+       ▼              ▼              ▼                ▼
+┌──────────────┬──────────────┬──────────────┬────────────────┐
+│   CI: Test   │  CI + Deploy │  CI + Deploy │  CI + Deploy   │
+│   Only       │  to Dev      │  to Staging  │  to Production │
+└──────────────┴──────────────┴──────────────┴────────────────┘
+       │              │              │                │
+       ▼              ▼              ▼                ▼
+┌──────────────┬──────────────┬──────────────┬────────────────┐
+│  No Deploy   │ Development  │   Staging    │   Production   │
+│              │ Environment  │ Environment  │  Environment   │
+└──────────────┴──────────────┴──────────────┴────────────────┘
+</code></pre>
+<h2 id="environment-configuration">Environment Configuration</h2>
+<h3 id="environment-matrix">Environment Matrix</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Environment</th>
+<th style="text-align:left">Branch</th>
+<th style="text-align:left">Auto Deploy</th>
+<th style="text-align:left">Approval Required</th>
+<th style="text-align:left">Database</th>
+<th style="text-align:left">URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Development</strong></td>
+<td style="text-align:left"><code>develop</code></td>
+<td style="text-align:left">✅ Yes</td>
+<td style="text-align:left">❌ No</td>
+<td style="text-align:left">Dev DB</td>
+<td style="text-align:left"><code>dev.car-service.com</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Staging</strong></td>
+<td style="text-align:left"><code>release/*</code></td>
+<td style="text-align:left">✅ Yes</td>
+<td style="text-align:left">❌ No</td>
+<td style="text-align:left">Staging DB</td>
+<td style="text-align:left"><code>staging.car-service.com</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Production</strong></td>
+<td style="text-align:left"><code>main</code></td>
+<td style="text-align:left">⚠️ Manual</td>
+<td style="text-align:left">✅ Yes (2 approvers)</td>
+<td style="text-align:left">Prod DB</td>
+<td style="text-align:left"><code>car-service.com</code></td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments">^6</a></p>
+<h2 id="complete-github-actions-workflow">Complete GitHub Actions Workflow</h2>
+<h3 id="main-cicd-pipeline">Main CI/CD Pipeline</h3>
+<p><strong>.github/workflows/ci-cd.yml</strong></p>
+<pre><code class="language-yaml"><span class="hljs-attr">name:</span> <span class="hljs-string">Car</span> <span class="hljs-string">Service</span> <span class="hljs-string">CI/CD</span> <span class="hljs-string">Pipeline</span>
+
+<span class="hljs-attr">on:</span>
+  <span class="hljs-attr">push:</span>
+    <span class="hljs-attr">branches:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">main</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">develop</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&#x27;release/**&#x27;</span>
+  <span class="hljs-attr">pull_request:</span>
+    <span class="hljs-attr">branches:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">main</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">develop</span>
+
+<span class="hljs-attr">env:</span>
+  <span class="hljs-attr">REGISTRY:</span> <span class="hljs-string">docker.io</span>
+  <span class="hljs-attr">NESTJS_IMAGE:</span> <span class="hljs-string">your-org/car-service-nestjs</span>
+  <span class="hljs-attr">SPRING_IMAGE:</span> <span class="hljs-string">your-org/car-service-spring</span>
+  <span class="hljs-attr">FRONTEND_IMAGE:</span> <span class="hljs-string">your-org/car-service-frontend</span>
+  <span class="hljs-attr">NODE_VERSION:</span> <span class="hljs-string">&#x27;18&#x27;</span>
+  <span class="hljs-attr">JAVA_VERSION:</span> <span class="hljs-string">&#x27;17&#x27;</span>
+
+<span class="hljs-attr">jobs:</span>
+  <span class="hljs-comment"># ==================== DETECT CHANGES ====================</span>
+  <span class="hljs-attr">detect-changes:</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">outputs:</span>
+      <span class="hljs-attr">nestjs:</span> <span class="hljs-string">${{</span> <span class="hljs-string">steps.filter.outputs.nestjs</span> <span class="hljs-string">}}</span>
+      <span class="hljs-attr">spring:</span> <span class="hljs-string">${{</span> <span class="hljs-string">steps.filter.outputs.spring</span> <span class="hljs-string">}}</span>
+      <span class="hljs-attr">frontend:</span> <span class="hljs-string">${{</span> <span class="hljs-string">steps.filter.outputs.frontend</span> <span class="hljs-string">}}</span>
+      <span class="hljs-attr">infra:</span> <span class="hljs-string">${{</span> <span class="hljs-string">steps.filter.outputs.infra</span> <span class="hljs-string">}}</span>
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+      
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">dorny/paths-filter@v2</span>
+        <span class="hljs-attr">id:</span> <span class="hljs-string">filter</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">filters:</span> <span class="hljs-string">|
+            nestjs:
+              - &#x27;backend/nestjs-api/**&#x27;
+            spring:
+              - &#x27;backend/spring-boot-api/**&#x27;
+            frontend:
+              - &#x27;frontend/react-app/**&#x27;
+            infra:
+              - &#x27;infrastructure/**&#x27;
+</span>
+  <span class="hljs-comment"># ==================== NESTJS CI ====================</span>
+  <span class="hljs-attr">nestjs-ci:</span>
+    <span class="hljs-attr">needs:</span> <span class="hljs-string">detect-changes</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">needs.detect-changes.outputs.nestjs</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;true&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Setup</span> <span class="hljs-string">Node.js</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/setup-node@v4</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">node-version:</span> <span class="hljs-string">${{</span> <span class="hljs-string">env.NODE_VERSION</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">cache:</span> <span class="hljs-string">&#x27;npm&#x27;</span>
+          <span class="hljs-attr">cache-dependency-path:</span> <span class="hljs-string">backend/nestjs-api/package-lock.json</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Install</span> <span class="hljs-string">dependencies</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/nestjs-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">ci</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Lint</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/nestjs-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">run</span> <span class="hljs-string">lint</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">unit</span> <span class="hljs-string">tests</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/nestjs-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">run</span> <span class="hljs-string">test:cov</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">e2e</span> <span class="hljs-string">tests</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/nestjs-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">run</span> <span class="hljs-string">test:e2e</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Upload</span> <span class="hljs-string">coverage</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">codecov/codecov-action@v3</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">files:</span> <span class="hljs-string">./backend/nestjs-api/coverage/coverage-final.json</span>
+          <span class="hljs-attr">flags:</span> <span class="hljs-string">nestjs</span>
+          <span class="hljs-attr">name:</span> <span class="hljs-string">nestjs-coverage</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">SonarCloud</span> <span class="hljs-string">Scan</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">SonarSource/sonarcloud-github-action@master</span>
+        <span class="hljs-attr">env:</span>
+          <span class="hljs-attr">GITHUB_TOKEN:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.GITHUB_TOKEN</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">SONAR_TOKEN:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.SONAR_TOKEN</span> <span class="hljs-string">}}</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">projectBaseDir:</span> <span class="hljs-string">backend/nestjs-api</span>
+
+  <span class="hljs-comment"># ==================== SPRING BOOT CI ====================</span>
+  <span class="hljs-attr">spring-boot-ci:</span>
+    <span class="hljs-attr">needs:</span> <span class="hljs-string">detect-changes</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">needs.detect-changes.outputs.spring</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;true&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Setup</span> <span class="hljs-string">Java</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/setup-java@v4</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">java-version:</span> <span class="hljs-string">${{</span> <span class="hljs-string">env.JAVA_VERSION</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">distribution:</span> <span class="hljs-string">&#x27;temurin&#x27;</span>
+          <span class="hljs-attr">cache:</span> <span class="hljs-string">&#x27;maven&#x27;</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Build</span> <span class="hljs-string">with</span> <span class="hljs-string">Maven</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/spring-boot-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">mvn</span> <span class="hljs-string">clean</span> <span class="hljs-string">install</span> <span class="hljs-string">-DskipTests</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">unit</span> <span class="hljs-string">tests</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/spring-boot-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">mvn</span> <span class="hljs-string">test</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">integration</span> <span class="hljs-string">tests</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/spring-boot-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">mvn</span> <span class="hljs-string">verify</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Generate</span> <span class="hljs-string">test</span> <span class="hljs-string">report</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">always()</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">dorny/test-reporter@v1</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">name:</span> <span class="hljs-string">Spring</span> <span class="hljs-string">Boot</span> <span class="hljs-string">Tests</span>
+          <span class="hljs-attr">path:</span> <span class="hljs-string">backend/spring-boot-api/target/surefire-reports/*.xml</span>
+          <span class="hljs-attr">reporter:</span> <span class="hljs-string">java-junit</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Code</span> <span class="hljs-string">coverage</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">backend/spring-boot-api</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">mvn</span> <span class="hljs-string">jacoco:report</span>
+
+  <span class="hljs-comment"># ==================== FRONTEND CI ====================</span>
+  <span class="hljs-attr">frontend-ci:</span>
+    <span class="hljs-attr">needs:</span> <span class="hljs-string">detect-changes</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">needs.detect-changes.outputs.frontend</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;true&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Setup</span> <span class="hljs-string">Node.js</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/setup-node@v4</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">node-version:</span> <span class="hljs-string">${{</span> <span class="hljs-string">env.NODE_VERSION</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">cache:</span> <span class="hljs-string">&#x27;npm&#x27;</span>
+          <span class="hljs-attr">cache-dependency-path:</span> <span class="hljs-string">frontend/react-app/package-lock.json</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Install</span> <span class="hljs-string">dependencies</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">frontend/react-app</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">ci</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Lint</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">frontend/react-app</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">run</span> <span class="hljs-string">lint</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">tests</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">frontend/react-app</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">test</span> <span class="hljs-string">--</span> <span class="hljs-string">--coverage</span> <span class="hljs-string">--watchAll=false</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Build</span> <span class="hljs-string">production</span>
+        <span class="hljs-attr">working-directory:</span> <span class="hljs-string">frontend/react-app</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">npm</span> <span class="hljs-string">run</span> <span class="hljs-string">build</span>
+        <span class="hljs-attr">env:</span>
+          <span class="hljs-attr">VITE_API_URL:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.API_URL</span> <span class="hljs-string">}}</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Upload</span> <span class="hljs-string">build</span> <span class="hljs-string">artifacts</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/upload-artifact@v3</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">name:</span> <span class="hljs-string">frontend-build</span>
+          <span class="hljs-attr">path:</span> <span class="hljs-string">frontend/react-app/dist</span>
+          <span class="hljs-attr">retention-days:</span> <span class="hljs-number">7</span>
+
+  <span class="hljs-comment"># ==================== SECURITY SCANNING ====================</span>
+  <span class="hljs-attr">security-scan:</span>
+    <span class="hljs-attr">needs:</span> [<span class="hljs-string">detect-changes</span>]
+    <span class="hljs-attr">if:</span> <span class="hljs-string">|
+      needs.detect-changes.outputs.nestjs == &#x27;true&#x27; ||
+      needs.detect-changes.outputs.spring == &#x27;true&#x27; ||
+      needs.detect-changes.outputs.frontend == &#x27;true&#x27;
+</span>    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">Trivy</span> <span class="hljs-string">vulnerability</span> <span class="hljs-string">scanner</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">aquasecurity/trivy-action@master</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">scan-type:</span> <span class="hljs-string">&#x27;fs&#x27;</span>
+          <span class="hljs-attr">scan-ref:</span> <span class="hljs-string">&#x27;.&#x27;</span>
+          <span class="hljs-attr">format:</span> <span class="hljs-string">&#x27;sarif&#x27;</span>
+          <span class="hljs-attr">output:</span> <span class="hljs-string">&#x27;trivy-results.sarif&#x27;</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Upload</span> <span class="hljs-string">Trivy</span> <span class="hljs-string">results</span> <span class="hljs-string">to</span> <span class="hljs-string">GitHub</span> <span class="hljs-string">Security</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">github/codeql-action/upload-sarif@v2</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">sarif_file:</span> <span class="hljs-string">&#x27;trivy-results.sarif&#x27;</span>
+
+  <span class="hljs-comment"># ==================== BUILD &amp; PUSH DOCKER IMAGES ====================</span>
+  <span class="hljs-attr">build-images:</span>
+    <span class="hljs-attr">needs:</span> [<span class="hljs-string">nestjs-ci</span>, <span class="hljs-string">spring-boot-ci</span>, <span class="hljs-string">frontend-ci</span>, <span class="hljs-string">detect-changes</span>]
+    <span class="hljs-attr">if:</span> <span class="hljs-string">|
+      always() &amp;&amp;
+      (github.ref == &#x27;refs/heads/develop&#x27; || 
+       github.ref == &#x27;refs/heads/main&#x27; ||
+       startsWith(github.ref, &#x27;refs/heads/release/&#x27;))
+</span>    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+
+    <span class="hljs-attr">strategy:</span>
+      <span class="hljs-attr">matrix:</span>
+        <span class="hljs-attr">service:</span>
+          <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">nestjs</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">backend/nestjs-api</span>
+            <span class="hljs-attr">image:</span> <span class="hljs-string">${{</span> <span class="hljs-string">env.NESTJS_IMAGE</span> <span class="hljs-string">}}</span>
+            <span class="hljs-attr">condition:</span> <span class="hljs-string">needs.detect-changes.outputs.nestjs</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;true&#x27;</span>
+          <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">spring</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">backend/spring-boot-api</span>
+            <span class="hljs-attr">image:</span> <span class="hljs-string">${{</span> <span class="hljs-string">env.SPRING_IMAGE</span> <span class="hljs-string">}}</span>
+            <span class="hljs-attr">condition:</span> <span class="hljs-string">needs.detect-changes.outputs.spring</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;true&#x27;</span>
+          <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">frontend</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">frontend/react-app</span>
+            <span class="hljs-attr">image:</span> <span class="hljs-string">${{</span> <span class="hljs-string">env.FRONTEND_IMAGE</span> <span class="hljs-string">}}</span>
+            <span class="hljs-attr">condition:</span> <span class="hljs-string">needs.detect-changes.outputs.frontend</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;true&#x27;</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">${{</span> <span class="hljs-string">matrix.service.condition</span> <span class="hljs-string">}}</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Set</span> <span class="hljs-string">up</span> <span class="hljs-string">Docker</span> <span class="hljs-string">Buildx</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">${{</span> <span class="hljs-string">matrix.service.condition</span> <span class="hljs-string">}}</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">docker/setup-buildx-action@v3</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Login</span> <span class="hljs-string">to</span> <span class="hljs-string">Docker</span> <span class="hljs-string">Hub</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">${{</span> <span class="hljs-string">matrix.service.condition</span> <span class="hljs-string">}}</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">docker/login-action@v3</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">username:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.DOCKER_USERNAME</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">password:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.DOCKER_PASSWORD</span> <span class="hljs-string">}}</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Extract</span> <span class="hljs-string">metadata</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">${{</span> <span class="hljs-string">matrix.service.condition</span> <span class="hljs-string">}}</span>
+        <span class="hljs-attr">id:</span> <span class="hljs-string">meta</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">docker/metadata-action@v5</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">images:</span> <span class="hljs-string">${{</span> <span class="hljs-string">matrix.service.image</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">tags:</span> <span class="hljs-string">|
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Build</span> <span class="hljs-string">and</span> <span class="hljs-string">push</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">${{</span> <span class="hljs-string">matrix.service.condition</span> <span class="hljs-string">}}</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">docker/build-push-action@v5</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">context:</span> <span class="hljs-string">${{</span> <span class="hljs-string">matrix.service.path</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">push:</span> <span class="hljs-literal">true</span>
+          <span class="hljs-attr">tags:</span> <span class="hljs-string">${{</span> <span class="hljs-string">steps.meta.outputs.tags</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">labels:</span> <span class="hljs-string">${{</span> <span class="hljs-string">steps.meta.outputs.labels</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">cache-from:</span> <span class="hljs-string">type=registry,ref=${{</span> <span class="hljs-string">matrix.service.image</span> <span class="hljs-string">}}:buildcache</span>
+          <span class="hljs-attr">cache-to:</span> <span class="hljs-string">type=registry,ref=${{</span> <span class="hljs-string">matrix.service.image</span> <span class="hljs-string">}}:buildcache,mode=max</span>
+
+  <span class="hljs-comment"># ==================== DEPLOY TO DEVELOPMENT ====================</span>
+  <span class="hljs-attr">deploy-dev:</span>
+    <span class="hljs-attr">needs:</span> [<span class="hljs-string">build-images</span>]
+    <span class="hljs-attr">if:</span> <span class="hljs-string">github.ref</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;refs/heads/develop&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-attr">name:</span> <span class="hljs-string">development</span>
+      <span class="hljs-attr">url:</span> <span class="hljs-string">https://dev.car-service.com</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Setup</span> <span class="hljs-string">kubectl</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">azure/setup-kubectl@v3</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">version:</span> <span class="hljs-string">&#x27;latest&#x27;</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Configure</span> <span class="hljs-string">kubectl</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          echo &quot;${{ secrets.KUBE_CONFIG_DEV }}&quot; | base64 -d &gt; kubeconfig
+          export KUBECONFIG=kubeconfig
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Deploy</span> <span class="hljs-string">to</span> <span class="hljs-string">Kubernetes</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          kubectl set image deployment/nestjs-api \
+            nestjs-api=${{ env.NESTJS_IMAGE }}:develop-${{ github.sha }} \
+            -n development
+</span>          
+          <span class="hljs-string">kubectl</span> <span class="hljs-string">set</span> <span class="hljs-string">image</span> <span class="hljs-string">deployment/spring-api</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">spring-api=${{</span> <span class="hljs-string">env.SPRING_IMAGE</span> <span class="hljs-string">}}:develop-${{</span> <span class="hljs-string">github.sha</span> <span class="hljs-string">}}</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">-n</span> <span class="hljs-string">development</span>
+          
+          <span class="hljs-string">kubectl</span> <span class="hljs-string">set</span> <span class="hljs-string">image</span> <span class="hljs-string">deployment/frontend</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">frontend=${{</span> <span class="hljs-string">env.FRONTEND_IMAGE</span> <span class="hljs-string">}}:develop-${{</span> <span class="hljs-string">github.sha</span> <span class="hljs-string">}}</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">-n</span> <span class="hljs-string">development</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Wait</span> <span class="hljs-string">for</span> <span class="hljs-string">rollout</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          kubectl rollout status deployment/nestjs-api -n development
+          kubectl rollout status deployment/spring-api -n development
+          kubectl rollout status deployment/frontend -n development
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">smoke</span> <span class="hljs-string">tests</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          curl -f https://dev.car-service.com/health || exit 1
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Notify</span> <span class="hljs-string">Slack</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">always()</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">8398a7/action-slack@v3</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">status:</span> <span class="hljs-string">${{</span> <span class="hljs-string">job.status</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">text:</span> <span class="hljs-string">&#x27;Deployment to Development: $<span class="hljs-template-variable">{{ job.status }}</span>&#x27;</span>
+          <span class="hljs-attr">webhook_url:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.SLACK_WEBHOOK</span> <span class="hljs-string">}}</span>
+
+  <span class="hljs-comment"># ==================== DEPLOY TO STAGING ====================</span>
+  <span class="hljs-attr">deploy-staging:</span>
+    <span class="hljs-attr">needs:</span> [<span class="hljs-string">build-images</span>]
+    <span class="hljs-attr">if:</span> <span class="hljs-string">startsWith(github.ref,</span> <span class="hljs-string">&#x27;refs/heads/release/&#x27;</span><span class="hljs-string">)</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-attr">name:</span> <span class="hljs-string">staging</span>
+      <span class="hljs-attr">url:</span> <span class="hljs-string">https://staging.car-service.com</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Extract</span> <span class="hljs-string">version</span>
+        <span class="hljs-attr">id:</span> <span class="hljs-string">version</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          VERSION=$(echo ${GITHUB_REF#refs/heads/release/})
+          echo &quot;version=$VERSION&quot; &gt;&gt; $GITHUB_OUTPUT
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Setup</span> <span class="hljs-string">kubectl</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">azure/setup-kubectl@v3</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Configure</span> <span class="hljs-string">kubectl</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          echo &quot;${{ secrets.KUBE_CONFIG_STAGING }}&quot; | base64 -d &gt; kubeconfig
+          export KUBECONFIG=kubeconfig
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Deploy</span> <span class="hljs-string">to</span> <span class="hljs-string">Kubernetes</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          # Update deployment with version tags
+          kubectl set image deployment/nestjs-api \
+            nestjs-api=${{ env.NESTJS_IMAGE }}:${{ steps.version.outputs.version }} \
+            -n staging
+</span>          
+          <span class="hljs-string">kubectl</span> <span class="hljs-string">set</span> <span class="hljs-string">image</span> <span class="hljs-string">deployment/spring-api</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">spring-api=${{</span> <span class="hljs-string">env.SPRING_IMAGE</span> <span class="hljs-string">}}:${{</span> <span class="hljs-string">steps.version.outputs.version</span> <span class="hljs-string">}}</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">-n</span> <span class="hljs-string">staging</span>
+          
+          <span class="hljs-string">kubectl</span> <span class="hljs-string">set</span> <span class="hljs-string">image</span> <span class="hljs-string">deployment/frontend</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">frontend=${{</span> <span class="hljs-string">env.FRONTEND_IMAGE</span> <span class="hljs-string">}}:${{</span> <span class="hljs-string">steps.version.outputs.version</span> <span class="hljs-string">}}</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">-n</span> <span class="hljs-string">staging</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">database</span> <span class="hljs-string">migrations</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          kubectl run migration-${{ github.sha }} \
+            --image=${{ env.NESTJS_IMAGE }}:${{ steps.version.outputs.version }} \
+            --restart=Never \
+            --command -- npm run migration:run \
+            -n staging
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Wait</span> <span class="hljs-string">for</span> <span class="hljs-string">rollout</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          kubectl rollout status deployment/nestjs-api -n staging
+          kubectl rollout status deployment/spring-api -n staging
+          kubectl rollout status deployment/frontend -n staging
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">integration</span> <span class="hljs-string">tests</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          npm run test:integration:staging
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Performance</span> <span class="hljs-string">test</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          docker run --rm -i grafana/k6 run - &lt; ./tests/load-test.js
+</span>
+  <span class="hljs-comment"># ==================== DEPLOY TO PRODUCTION ====================</span>
+  <span class="hljs-attr">deploy-production:</span>
+    <span class="hljs-attr">needs:</span> [<span class="hljs-string">build-images</span>]
+    <span class="hljs-attr">if:</span> <span class="hljs-string">github.ref</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;refs/heads/main&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-attr">name:</span> <span class="hljs-string">production</span>
+      <span class="hljs-attr">url:</span> <span class="hljs-string">https://car-service.com</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Checkout</span> <span class="hljs-string">code</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Setup</span> <span class="hljs-string">kubectl</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">azure/setup-kubectl@v3</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Configure</span> <span class="hljs-string">kubectl</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          echo &quot;${{ secrets.KUBE_CONFIG_PROD }}&quot; | base64 -d &gt; kubeconfig
+          export KUBECONFIG=kubeconfig
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Create</span> <span class="hljs-string">backup</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          # Backup current deployment
+          kubectl get deployment -n production -o yaml &gt; backup-deployment.yaml
+</span>          
+          <span class="hljs-comment"># Backup database</span>
+          <span class="hljs-string">./scripts/backup-database.sh</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Deploy</span> <span class="hljs-string">with</span> <span class="hljs-string">blue-green</span> <span class="hljs-string">strategy</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          # Deploy to green environment
+          kubectl apply -f infrastructure/kubernetes/green/ -n production
+</span>          
+          <span class="hljs-comment"># Wait for green to be healthy</span>
+          <span class="hljs-string">kubectl</span> <span class="hljs-string">wait</span> <span class="hljs-string">--for=condition=available</span> <span class="hljs-string">--timeout=300s</span> <span class="hljs-string">\</span>
+            <span class="hljs-string">deployment/nestjs-api-green</span> <span class="hljs-string">-n</span> <span class="hljs-string">production</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">smoke</span> <span class="hljs-string">tests</span> <span class="hljs-string">on</span> <span class="hljs-string">green</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          curl -f https://green.car-service.com/health || exit 1
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Switch</span> <span class="hljs-string">traffic</span> <span class="hljs-string">to</span> <span class="hljs-string">green</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          kubectl patch service nestjs-api \
+            -p &#x27;{&quot;spec&quot;:{&quot;selector&quot;:{&quot;version&quot;:&quot;green&quot;}}}&#x27; \
+            -n production
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Monitor</span> <span class="hljs-string">for</span> <span class="hljs-number">5</span> <span class="hljs-string">minutes</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          sleep 300
+          # Check error rates, response times
+          ./scripts/check-metrics.sh
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Cleanup</span> <span class="hljs-string">old</span> <span class="hljs-string">blue</span> <span class="hljs-string">deployment</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          kubectl delete deployment -l version=blue -n production
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Create</span> <span class="hljs-string">Git</span> <span class="hljs-string">tag</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          git tag -a v${{ github.run_number }} -m &quot;Production release ${{ github.run_number }}&quot;
+          git push origin v${{ github.run_number }}
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Notify</span> <span class="hljs-string">team</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">8398a7/action-slack@v3</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">status:</span> <span class="hljs-string">${{</span> <span class="hljs-string">job.status</span> <span class="hljs-string">}}</span>
+          <span class="hljs-attr">text:</span> <span class="hljs-string">|
+            🚀 Production Deployment Successful
+            Version: v${{ github.run_number }}
+            Commit: ${{ github.sha }}
+</span>          <span class="hljs-attr">webhook_url:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.SLACK_WEBHOOK</span> <span class="hljs-string">}}</span>
+
+  <span class="hljs-comment"># ==================== ROLLBACK (Manual Trigger) ====================</span>
+  <span class="hljs-attr">rollback:</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">github.event_name</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;workflow_dispatch&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-attr">name:</span> <span class="hljs-string">production</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Rollback</span> <span class="hljs-string">to</span> <span class="hljs-string">previous</span> <span class="hljs-string">version</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          kubectl rollout undo deployment/nestjs-api -n production
+          kubectl rollout undo deployment/spring-api -n production
+          kubectl rollout undo deployment/frontend -n production
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Restore</span> <span class="hljs-string">database</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          ./scripts/restore-database.sh ${{ github.event.inputs.backup_id }}
+</span></code></pre>
+<h2 id="environment-specific-configurations">Environment-Specific Configurations</h2>
+<h3 id="development-environment">Development Environment</h3>
+<p><strong>infrastructure/kubernetes/dev/deployment.yaml</strong></p>
+<pre><code class="language-yaml"><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">apps/v1</span>
+<span class="hljs-attr">kind:</span> <span class="hljs-string">Deployment</span>
+<span class="hljs-attr">metadata:</span>
+  <span class="hljs-attr">name:</span> <span class="hljs-string">nestjs-api</span>
+  <span class="hljs-attr">namespace:</span> <span class="hljs-string">development</span>
+<span class="hljs-attr">spec:</span>
+  <span class="hljs-attr">replicas:</span> <span class="hljs-number">1</span>
+  <span class="hljs-attr">selector:</span>
+    <span class="hljs-attr">matchLabels:</span>
+      <span class="hljs-attr">app:</span> <span class="hljs-string">nestjs-api</span>
+      <span class="hljs-attr">env:</span> <span class="hljs-string">dev</span>
+  <span class="hljs-attr">template:</span>
+    <span class="hljs-attr">metadata:</span>
+      <span class="hljs-attr">labels:</span>
+        <span class="hljs-attr">app:</span> <span class="hljs-string">nestjs-api</span>
+        <span class="hljs-attr">env:</span> <span class="hljs-string">dev</span>
+    <span class="hljs-attr">spec:</span>
+      <span class="hljs-attr">containers:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">nestjs-api</span>
+        <span class="hljs-attr">image:</span> <span class="hljs-string">your-org/car-service-nestjs:develop-latest</span>
+        <span class="hljs-attr">env:</span>
+        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">NODE_ENV</span>
+          <span class="hljs-attr">value:</span> <span class="hljs-string">&quot;development&quot;</span>
+        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">DB_HOST</span>
+          <span class="hljs-attr">value:</span> <span class="hljs-string">&quot;postgres-dev.default.svc.cluster.local&quot;</span>
+        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">REDIS_HOST</span>
+          <span class="hljs-attr">value:</span> <span class="hljs-string">&quot;redis-dev.default.svc.cluster.local&quot;</span>
+        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">LOG_LEVEL</span>
+          <span class="hljs-attr">value:</span> <span class="hljs-string">&quot;debug&quot;</span>
+        <span class="hljs-attr">resources:</span>
+          <span class="hljs-attr">requests:</span>
+            <span class="hljs-attr">memory:</span> <span class="hljs-string">&quot;256Mi&quot;</span>
+            <span class="hljs-attr">cpu:</span> <span class="hljs-string">&quot;100m&quot;</span>
+          <span class="hljs-attr">limits:</span>
+            <span class="hljs-attr">memory:</span> <span class="hljs-string">&quot;512Mi&quot;</span>
+            <span class="hljs-attr">cpu:</span> <span class="hljs-string">&quot;200m&quot;</span>
+        <span class="hljs-attr">livenessProbe:</span>
+          <span class="hljs-attr">httpGet:</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">/health</span>
+            <span class="hljs-attr">port:</span> <span class="hljs-number">3000</span>
+          <span class="hljs-attr">initialDelaySeconds:</span> <span class="hljs-number">30</span>
+          <span class="hljs-attr">periodSeconds:</span> <span class="hljs-number">10</span>
+        <span class="hljs-attr">readinessProbe:</span>
+          <span class="hljs-attr">httpGet:</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">/health</span>
+            <span class="hljs-attr">port:</span> <span class="hljs-number">3000</span>
+          <span class="hljs-attr">initialDelaySeconds:</span> <span class="hljs-number">10</span>
+          <span class="hljs-attr">periodSeconds:</span> <span class="hljs-number">5</span>
+</code></pre>
+<h3 id="production-environment-blue-green">Production Environment (Blue-Green)</h3>
+<p><strong>infrastructure/kubernetes/production/deployment-green.yaml</strong></p>
+<pre><code class="language-yaml"><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">apps/v1</span>
+<span class="hljs-attr">kind:</span> <span class="hljs-string">Deployment</span>
+<span class="hljs-attr">metadata:</span>
+  <span class="hljs-attr">name:</span> <span class="hljs-string">nestjs-api-green</span>
+  <span class="hljs-attr">namespace:</span> <span class="hljs-string">production</span>
+<span class="hljs-attr">spec:</span>
+  <span class="hljs-attr">replicas:</span> <span class="hljs-number">3</span>
+  <span class="hljs-attr">strategy:</span>
+    <span class="hljs-attr">type:</span> <span class="hljs-string">RollingUpdate</span>
+    <span class="hljs-attr">rollingUpdate:</span>
+      <span class="hljs-attr">maxSurge:</span> <span class="hljs-number">1</span>
+      <span class="hljs-attr">maxUnavailable:</span> <span class="hljs-number">0</span>
+  <span class="hljs-attr">selector:</span>
+    <span class="hljs-attr">matchLabels:</span>
+      <span class="hljs-attr">app:</span> <span class="hljs-string">nestjs-api</span>
+      <span class="hljs-attr">version:</span> <span class="hljs-string">green</span>
+  <span class="hljs-attr">template:</span>
+    <span class="hljs-attr">metadata:</span>
+      <span class="hljs-attr">labels:</span>
+        <span class="hljs-attr">app:</span> <span class="hljs-string">nestjs-api</span>
+        <span class="hljs-attr">version:</span> <span class="hljs-string">green</span>
+    <span class="hljs-attr">spec:</span>
+      <span class="hljs-attr">containers:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">nestjs-api</span>
+        <span class="hljs-attr">image:</span> <span class="hljs-string">your-org/car-service-nestjs:latest</span>
+        <span class="hljs-attr">env:</span>
+        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">NODE_ENV</span>
+          <span class="hljs-attr">value:</span> <span class="hljs-string">&quot;production&quot;</span>
+        <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">DB_HOST</span>
+          <span class="hljs-attr">valueFrom:</span>
+            <span class="hljs-attr">secretKeyRef:</span>
+              <span class="hljs-attr">name:</span> <span class="hljs-string">db-credentials</span>
+              <span class="hljs-attr">key:</span> <span class="hljs-string">host</span>
+        <span class="hljs-attr">resources:</span>
+          <span class="hljs-attr">requests:</span>
+            <span class="hljs-attr">memory:</span> <span class="hljs-string">&quot;1Gi&quot;</span>
+            <span class="hljs-attr">cpu:</span> <span class="hljs-string">&quot;500m&quot;</span>
+          <span class="hljs-attr">limits:</span>
+            <span class="hljs-attr">memory:</span> <span class="hljs-string">&quot;2Gi&quot;</span>
+            <span class="hljs-attr">cpu:</span> <span class="hljs-string">&quot;1000m&quot;</span>
+        <span class="hljs-attr">livenessProbe:</span>
+          <span class="hljs-attr">httpGet:</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">/health</span>
+            <span class="hljs-attr">port:</span> <span class="hljs-number">3000</span>
+          <span class="hljs-attr">initialDelaySeconds:</span> <span class="hljs-number">60</span>
+          <span class="hljs-attr">periodSeconds:</span> <span class="hljs-number">30</span>
+          <span class="hljs-attr">failureThreshold:</span> <span class="hljs-number">3</span>
+        <span class="hljs-attr">readinessProbe:</span>
+          <span class="hljs-attr">httpGet:</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">/ready</span>
+            <span class="hljs-attr">port:</span> <span class="hljs-number">3000</span>
+          <span class="hljs-attr">initialDelaySeconds:</span> <span class="hljs-number">30</span>
+          <span class="hljs-attr">periodSeconds:</span> <span class="hljs-number">10</span>
+          <span class="hljs-attr">failureThreshold:</span> <span class="hljs-number">3</span>
+</code></pre>
+<h2 id="database-migration-pipeline">Database Migration Pipeline</h2>
+<p><strong>.github/workflows/database-migration.yml</strong></p>
+<pre><code class="language-yaml"><span class="hljs-attr">name:</span> <span class="hljs-string">Database</span> <span class="hljs-string">Migration</span>
+
+<span class="hljs-attr">on:</span>
+  <span class="hljs-attr">push:</span>
+    <span class="hljs-attr">branches:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">develop</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">main</span>
+    <span class="hljs-attr">paths:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">&#x27;database/migrations/**&#x27;</span>
+
+<span class="hljs-attr">jobs:</span>
+  <span class="hljs-attr">migrate-dev:</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">github.ref</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;refs/heads/develop&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">environment:</span> <span class="hljs-string">development</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">migrations</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          docker run --rm \
+            -e DATABASE_URL=${{ secrets.DEV_DATABASE_URL }} \
+            -v $(pwd)/database/migrations:/migrations \
+            migrate/migrate \
+            -path=/migrations \
+            -database ${{ secrets.DEV_DATABASE_URL }} \
+            up
+</span>
+  <span class="hljs-attr">migrate-staging:</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">startsWith(github.ref,</span> <span class="hljs-string">&#x27;refs/heads/release/&#x27;</span><span class="hljs-string">)</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">environment:</span> <span class="hljs-string">staging</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Backup</span> <span class="hljs-string">database</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          ./scripts/backup-database.sh staging
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">migrations</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          docker run --rm \
+            -e DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }} \
+            -v $(pwd)/database/migrations:/migrations \
+            migrate/migrate \
+            -path=/migrations \
+            -database ${{ secrets.STAGING_DATABASE_URL }} \
+            up
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Verify</span> <span class="hljs-string">migration</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          ./scripts/verify-migration.sh staging
+</span>
+  <span class="hljs-attr">migrate-production:</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">github.ref</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;refs/heads/main&#x27;</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">environment:</span> <span class="hljs-string">production</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">uses:</span> <span class="hljs-string">actions/checkout@v4</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Create</span> <span class="hljs-string">backup</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          ./scripts/backup-database.sh production
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Dry-run</span> <span class="hljs-string">migration</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          ./scripts/dry-run-migration.sh production
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Wait</span> <span class="hljs-string">for</span> <span class="hljs-string">approval</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">trstringer/manual-approval@v1</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">approvers:</span> <span class="hljs-string">senior-dev-team</span>
+          <span class="hljs-attr">minimum-approvals:</span> <span class="hljs-number">2</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Run</span> <span class="hljs-string">migrations</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          docker run --rm \
+            -e DATABASE_URL=${{ secrets.PROD_DATABASE_URL }} \
+            -v $(pwd)/database/migrations:/migrations \
+            migrate/migrate \
+            -path=/migrations \
+            -database ${{ secrets.PROD_DATABASE_URL }} \
+            up
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Verify</span> <span class="hljs-string">migration</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          ./scripts/verify-migration.sh production
+</span></code></pre>
+<h2 id="monitoring-and-alerts">Monitoring and Alerts</h2>
+<p><strong>.github/workflows/monitoring.yml</strong></p>
+<pre><code class="language-yaml"><span class="hljs-attr">name:</span> <span class="hljs-string">Post-Deployment</span> <span class="hljs-string">Monitoring</span>
+
+<span class="hljs-attr">on:</span>
+  <span class="hljs-attr">workflow_run:</span>
+    <span class="hljs-attr">workflows:</span> [<span class="hljs-string">&quot;Car Service CI/CD Pipeline&quot;</span>]
+    <span class="hljs-attr">types:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">completed</span>
+
+<span class="hljs-attr">jobs:</span>
+  <span class="hljs-attr">monitor:</span>
+    <span class="hljs-attr">runs-on:</span> <span class="hljs-string">ubuntu-latest</span>
+    <span class="hljs-attr">if:</span> <span class="hljs-string">${{</span> <span class="hljs-string">github.event.workflow_run.conclusion</span> <span class="hljs-string">==</span> <span class="hljs-string">&#x27;success&#x27;</span> <span class="hljs-string">}}</span>
+
+    <span class="hljs-attr">steps:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Check</span> <span class="hljs-string">application</span> <span class="hljs-string">health</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          for i in {1..10}; do
+            if curl -f https://car-service.com/health; then
+              echo &quot;Health check passed&quot;
+              break
+            fi
+            echo &quot;Retry $i/10&quot;
+            sleep 30
+          done
+</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Check</span> <span class="hljs-string">error</span> <span class="hljs-string">rates</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          # Query Prometheus/Grafana for error rates
+          ERROR_RATE=$(curl -s &quot;http://prometheus:9090/api/v1/query?query=rate(http_requests_total{status=~&#x27;5..&#x27;}[5m])&quot;)
+</span>          
+          <span class="hljs-string">if</span> [ <span class="hljs-string">&quot;$ERROR_RATE&quot;</span> <span class="hljs-string">-gt</span> <span class="hljs-string">&quot;0.01&quot;</span> ]<span class="hljs-string">;</span> <span class="hljs-string">then</span>
+            <span class="hljs-string">echo</span> <span class="hljs-string">&quot;High error rate detected: $ERROR_RATE&quot;</span>
+            <span class="hljs-string">exit</span> <span class="hljs-number">1</span>
+          <span class="hljs-string">fi</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Check</span> <span class="hljs-string">response</span> <span class="hljs-string">times</span>
+        <span class="hljs-attr">run:</span> <span class="hljs-string">|
+          # Check average response time
+          AVG_RESPONSE=$(curl -s &quot;http://prometheus:9090/api/v1/query?query=http_request_duration_seconds&quot;)
+</span>          
+          <span class="hljs-string">if</span> [ <span class="hljs-string">&quot;$AVG_RESPONSE&quot;</span> <span class="hljs-string">-gt</span> <span class="hljs-string">&quot;1.0&quot;</span> ]<span class="hljs-string">;</span> <span class="hljs-string">then</span>
+            <span class="hljs-string">echo</span> <span class="hljs-string">&quot;High response time: $AVG_RESPONSE seconds&quot;</span>
+            <span class="hljs-comment"># Send alert but don&#x27;t fail</span>
+          <span class="hljs-string">fi</span>
+
+      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Alert</span> <span class="hljs-string">on</span> <span class="hljs-string">failure</span>
+        <span class="hljs-attr">if:</span> <span class="hljs-string">failure()</span>
+        <span class="hljs-attr">uses:</span> <span class="hljs-string">8398a7/action-slack@v3</span>
+        <span class="hljs-attr">with:</span>
+          <span class="hljs-attr">status:</span> <span class="hljs-string">failure</span>
+          <span class="hljs-attr">text:</span> <span class="hljs-string">&#x27;🚨 Post-deployment monitoring failed!&#x27;</span>
+          <span class="hljs-attr">webhook_url:</span> <span class="hljs-string">${{</span> <span class="hljs-string">secrets.SLACK_WEBHOOK</span> <span class="hljs-string">}}</span>
+</code></pre>
+<h2 id="cicd-workflow-summary">CI/CD Workflow Summary</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                    GIT PUSH EVENT                            │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 1: CONTINUOUS INTEGRATION (CI)                        │
+├─────────────────────────────────────────────────────────────┤
+│  1. Detect Changes (paths-filter)                           │
+│  2. Lint Code (ESLint, Prettier, Checkstyle)               │
+│  3. Unit Tests (Jest, JUnit)                                │
+│  4. Integration Tests (E2E, API Tests)                      │
+│  5. Code Coverage (&gt;80%)                                     │
+│  6. Security Scan (Trivy, SonarQube)                        │
+│  7. Build Validation                                         │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 2: BUILD &amp; PACKAGE                                    │
+├─────────────────────────────────────────────────────────────┤
+│  1. Build Docker Images                                      │
+│  2. Tag with version (branch-sha, semver)                   │
+│  3. Push to Docker Registry                                  │
+│  4. Generate SBOM (Software Bill of Materials)              │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 3: CONTINUOUS DEPLOYMENT (CD)                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐              │
+│  │ Develop  │  │ Release  │  │    Main      │              │
+│  │ Branch   │  │ Branch   │  │   Branch     │              │
+│  └────┬─────┘  └────┬─────┘  └──────┬───────┘              │
+│       │             │               │                       │
+│       ▼             ▼               ▼                       │
+│  ┌────────┐   ┌─────────┐   ┌──────────────┐              │
+│  │  DEV   │   │ STAGING │   │ PRODUCTION   │              │
+│  │  Auto  │   │  Auto   │   │ + Approval   │              │
+│  └────────┘   └─────────┘   └──────────────┘              │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+<h2 id="best-practices-implementation">Best Practices Implementation</h2>
+<h3 id="1-fast-feedback-loop">1. Fast Feedback Loop</h3>
+<ul>
+<li>Unit tests run first (fastest)</li>
+<li>Integration tests run after</li>
+<li>Build only if tests pass</li>
+<li>Parallel execution where possible
+<a href="https://gitprotect.io/blog/exploring-best-practices-and-modern-trends-in-ci-cd/">^4</a></li>
+</ul>
+<h3 id="2-security-first">2. Security First</h3>
+<ul>
+<li>Scan dependencies for vulnerabilities</li>
+<li>Container image scanning</li>
+<li>Secret management with GitHub Secrets</li>
+<li>SBOM generation
+<a href="https://gitprotect.io/blog/exploring-best-practices-and-modern-trends-in-ci-cd/">^4</a></li>
+</ul>
+<h3 id="3-progressive-deployment">3. Progressive Deployment</h3>
+<ul>
+<li>Development: Automatic</li>
+<li>Staging: Automatic with tests</li>
+<li>Production: Manual approval + Blue-Green
+<a href="https://codefresh.io/learn/github-actions/deployment-with-github-actions-quick-tutorial-and-5-best-practices/">^3</a></li>
+</ul>
+<h3 id="4-rollback-strategy">4. Rollback Strategy</h3>
+<ul>
+<li>Keep previous version running (Blue-Green)</li>
+<li>Database backups before migrations</li>
+<li>One-click rollback capability</li>
+<li>Automated health checks
+<a href="https://hackernoon.com/from-git-flow-to-cicd-a-practical-guide-to-implement-git-workflow">^1</a></li>
+</ul>
+<h3 id="5-observability">5. Observability</h3>
+<ul>
+<li>Health check endpoints</li>
+<li>Performance monitoring</li>
+<li>Error rate tracking</li>
+<li>Slack/Email notifications
+<a href="https://gitprotect.io/blog/exploring-best-practices-and-modern-trends-in-ci-cd/">^4</a></li>
+</ul>
+<p>ระบบ CI/CD นี้รองรับ Git Flow อย่างสมบูรณ์ โดยแต่ละ branch มี pipeline ที่เหมาะสม มีการตรวจสอบคุณภาพ ความปลอดภัย และการ deploy แบบอัตโนมัติที่ปลอดภัย<a href="https://hackernoon.com/from-git-flow-to-cicd-a-practical-guide-to-implement-git-workflow">^5</a>
+<span style="display:none"><a href="https://about.gitlab.com/topics/version-control/what-are-gitlab-flow-best-practices/">^10</a><a href="https://www.scalefree.com/consulting/devops-solutions/behind-the-branches-navigating-git-workflows-in-modern-devops/">^8</a></span></p>
+<div align="center">⁂</div>
+<h1 id="devops-workflow-และ-template-สำหรับ-git-flow">DevOps Workflow และ Template สำหรับ Git Flow</h1>
+<h2 id="1-การออกแบบ-cicd-workflow-สอดคล้องกับ-git-flow">1. การออกแบบ CI/CD Workflow สอดคล้องกับ Git Flow</h2>
+<h3 id="git-flow-branch-structure">Git Flow Branch Structure</h3>
+<pre><code>main (production)
+├── release/*
+│   ├── develop
+│   │   ├── feature/*
+│   │   └── hotfix/*
+│   └── staging
+</code></pre>
+<h3 id="cicd-pipeline-design">CI/CD Pipeline Design</h3>
+<p><strong>ขั้นตอนหลัก:</strong></p>
+<ol>
+<li>
+<p><strong>Feature Branch Workflow</strong></p>
+<ul>
+<li>Trigger: เมื่อมี commit/push ไปที่ feature/*</li>
+<li>Actions:
+<ul>
+<li>Code linting และ static analysis</li>
+<li>Unit tests</li>
+<li>Build package (Docker image, binary, etc.)</li>
+<li>Deploy ไปยัง development environment</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Develop Branch Workflow</strong></p>
+<ul>
+<li>Trigger: เมื่อมี merge ไปที่ develop</li>
+<li>Actions:
+<ul>
+<li>Integration tests</li>
+<li>Security scanning</li>
+<li>Build และ deploy ไปยัง integration environment</li>
+<li>Automated API testing</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Release Branch Workflow</strong></p>
+<ul>
+<li>Trigger: เมื่อสร้าง release/* branch</li>
+<li>Actions:
+<ul>
+<li>Performance testing</li>
+<li>User acceptance testing (UAT)</li>
+<li>Deploy ไปยัง staging environment</li>
+<li>Manual approval สำหรับ production</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Hotfix Branch Workflow</strong></p>
+<ul>
+<li>Trigger: เมื่อสร้าง hotfix/* branch จาก main</li>
+<li>Actions:
+<ul>
+<li>Emergency security scans</li>
+<li>Critical tests only</li>
+<li>Fast-track deployment ไปยัง production</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Main Branch Workflow</strong></p>
+<ul>
+<li>Trigger: เมื่อ merge ไปที่ main (จาก release หรือ hotfix)</li>
+<li>Actions:
+<ul>
+<li>Tag version (semantic versioning)</li>
+<li>Generate release notes</li>
+<li>Deploy ไปยัง production</li>
+<li>Backup และ monitoring verification</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-การออกแบบ-flow">2. การออกแบบ Flow</h2>
+<h3 id="development-flow-diagram">Development Flow Diagram</h3>
+<pre><code>[Feature Request] → [Create Feature Branch] → [Development]
+       ↓
+[Code Review] → [Merge to Develop] → [Integration Testing]
+       ↓
+[Create Release Branch] → [Staging/UAT] → [Approval]
+       ↓
+[Merge to Main] → [Production Deployment] → [Monitoring]
+</code></pre>
+<h3 id="deployment-strategy">Deployment Strategy</h3>
+<ol>
+<li><strong>Blue-Green Deployment</strong> สำหรับ production</li>
+<li><strong>Canary Release</strong> สำหรับ feature testing</li>
+<li><strong>Rollback Mechanism</strong> แบบอัตโนมัติ</li>
+</ol>
+<h3 id="environment-configuration-1">Environment Configuration</h3>
+<ul>
+<li><strong>Development</strong>: สำหรับ developer testing</li>
+<li><strong>Integration</strong>: สำหรับ integration testing</li>
+<li><strong>Staging</strong>: สำเนาของ production สำหรับ UAT</li>
+<li><strong>Production</strong>: Live environment</li>
+</ul>
+<h2 id="3-task-list-template">3. TASK LIST Template</h2>
+<h3 id="feature-development-template">Feature Development Template</h3>
+<pre><code>## TASK: [Feature Name]
+**ID:** PROJ-XXX
+**Priority:** High/Medium/Low
+**Estimated Time:** X days
+</code></pre>
+<h3 id="description">Description</h3>
+<p>[คำอธิบายโดยย่อของ feature]</p>
+<h3 id="acceptance-criteria">Acceptance Criteria</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Criteria 1</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Criteria 2</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Criteria 3</li>
+</ul>
+<h3 id="technical-requirements">Technical Requirements</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Database changes (ถ้ามี)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> API changes</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> UI/UX requirements</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Performance requirements</li>
+</ul>
+<h3 id="development-tasks">Development Tasks</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Create feature branch: <code>feature/PROJ-XXX-short-description</code></li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Implement core functionality</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Write unit tests (coverage &gt; 80%)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Update documentation</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Code review preparation</li>
+</ul>
+<h3 id="testing-tasks">Testing Tasks</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Unit tests passing</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Integration tests</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Manual testing checklist</li>
+</ul>
+<h3 id="deployment-tasks">Deployment Tasks</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Merge to develop</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Deploy to integration environment</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Verify deployment</li>
+</ul>
+<h3 id="dependencies">Dependencies</h3>
+<ul>
+<li>[Dependency 1]</li>
+<li>[Dependency 2]</li>
+</ul>
+<h3 id="notes">Notes</h3>
+<p>[Additional notes or comments]</p>
+<h3 id="release-preparation-template">Release Preparation Template</h3>
+<h2 id="release-vxyz">RELEASE: vX.Y.Z</h2>
+<p><strong>Release Date:</strong> YYYY-MM-DD
+<strong>Release Manager:</strong> [Name]</p>
+<h3 id="features-included">Features Included</h3>
+<ul>
+<li>[Feature 1] - PROJ-XXX</li>
+<li>[Feature 2] - PROJ-YYY</li>
+<li>[Bug Fixes] - PROJ-ZZZ</li>
+</ul>
+<h3 id="pre-release-checklist">Pre-release Checklist</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> All features merged to develop</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Integration tests passing</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Performance testing completed</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Security scanning passed</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Documentation updated</li>
+</ul>
+<h3 id="release-process">Release Process</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Create release branch: <code>release/vX.Y.Z</code></li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Update version numbers</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Deploy to staging</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> UAT sign-off received</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Merge to main</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Create git tag</li>
+</ul>
+<h3 id="rollback-plan">Rollback Plan</h3>
+<p>[Step-by-step rollback procedure]</p>
+<h2 id="4-checklist-template">4. CHECKLIST Template</h2>
+<h3 id="code-review-checklist">Code Review Checklist</h3>
+<h2 id="code-review-checklist-1">CODE REVIEW CHECKLIST</h2>
+<p><strong>Reviewer:</strong> [Name]
+<strong>PR Link:</strong> [GitHub/GitLab Link]</p>
+<h3 id="code-quality">Code Quality</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Code follows style guide</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> No dead code/commented code</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Error handling implemented</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Logging appropriate</li>
+</ul>
+<h3 id="testing">Testing</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Unit tests added/updated</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Test coverage adequate</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Edge cases considered</li>
+</ul>
+<h3 id="security">Security</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> No hard-coded secrets</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Input validation implemented</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> SQL injection prevention</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> XSS prevention</li>
+</ul>
+<h3 id="performance">Performance</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> No memory leaks</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Database queries optimized</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> API response time acceptable</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Code comments clear</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> README updated (if needed)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> API documentation updated</li>
+</ul>
+<h3 id="approval">Approval</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Approve</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Request changes</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Comments: [Add comments here]</li>
+</ul>
+<h3 id="deployment-checklist">Deployment Checklist</h3>
+<h2 id="deployment-checklist-1">DEPLOYMENT CHECKLIST</h2>
+<p><strong>Environment:</strong> [Production/Staging]
+<strong>Version:</strong> vX.Y.Z
+<strong>Deployment Time:</strong> YYYY-MM-DD HH:MM</p>
+<h3 id="pre-deployment">Pre-deployment</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Backup completed</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Database migrations ready (if any)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Configuration files updated</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Load balancer configured</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Monitoring alerts enabled</li>
+</ul>
+<h3 id="during-deployment">During Deployment</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Deploy to 10% of instances (Canary)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Health checks passing</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Monitor error rates</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Deploy to remaining instances</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Verify all services running</li>
+</ul>
+<h3 id="post-deployment">Post-deployment</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Smoke tests passed</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> API endpoints verified</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Database connections verified</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Performance monitoring stable</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Notify stakeholders</li>
+</ul>
+<h3 id="rollback-preparedness">Rollback Preparedness</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Rollback script ready</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Previous version artifacts available</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Team on standby for 1 hour post-deployment</li>
+</ul>
+<h3 id="production-release-checklist">Production Release Checklist</h3>
+<h2 id="production-release-checklist-1">PRODUCTION RELEASE CHECKLIST</h2>
+<p><strong>Release:</strong> vX.Y.Z
+<strong>Scheduled:</strong> YYYY-MM-DD HH:MM
+<strong>Change Window:</strong> [Time Window]</p>
+<h3 id="approval-required">Approval Required</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Product Owner approval</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Tech Lead approval</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> DevOps approval</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Business approval (if major release)</li>
+</ul>
+<h3 id="communication">Communication</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Stakeholders notified</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Support team briefed</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Maintenance page ready (if needed)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Rollback communication plan ready</li>
+</ul>
+<h3 id="verification">Verification</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> All automated tests passing</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Performance tests passed</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Security scan clean</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Compliance requirements met</li>
+</ul>
+<h3 id="sign-off">Sign-off</h3>
+<p><strong>Release Manager:</strong> ___________________
+<strong>Date/Time:</strong> _________________________
+<strong>Status:</strong> ☐ Success  ☐ Rolled Back
+<strong>Notes:</strong> ____________________________</p>
+<h3 id="hotfix-checklist">Hotfix Checklist</h3>
+<h2 id="hotfix-emergency-checklist">HOTFIX EMERGENCY CHECKLIST</h2>
+<p><strong>Issue:</strong> [Brief description]
+<strong>Severity:</strong> Critical/High
+<strong>Hotfix Branch:</strong> hotfix/issue-description</p>
+<h3 id="assessment">Assessment</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Business impact assessed</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Root cause identified</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Fix verified in dev environment</li>
+</ul>
+<h3 id="implementation">Implementation</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Minimal changes only</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Tests updated</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Documentation updated</li>
+</ul>
+<h3 id="deployment">Deployment</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Emergency approval received</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Deploy to production</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Immediate verification</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Monitor closely for 24 hours</li>
+</ul>
+<h3 id="post-mortem-required">Post-mortem Required</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Schedule post-mortem meeting</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Document lessons learned</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Update runbooks</li>
+</ul>
+<p>การใช้งาน template เหล่านี้จะช่วยให้ทีมพัฒนามีกระบวนการที่เป็นมาตรฐาน สม่ำเสมอ และสามารถติดตามได้อย่างมีประสิทธิภาพ</p>
+<h1 id="devops-workflow-และ-template-สำหรับ-git-flow-ภาษาไทย">DevOps Workflow และ Template สำหรับ Git Flow (ภาษาไทย)</h1>
+<h2 id="1-การออกแบบ-cicd-workflow-สอดคล้องกับ-git-flow-1">1. การออกแบบ CI/CD Workflow สอดคล้องกับ Git Flow</h2>
+<h3 id="โครงสร้างสาขา-git-flow">โครงสร้างสาขา Git Flow</h3>
+<pre><code>main (production - สภาพแวดล้อมการผลิตจริง)
+├── release/*
+│   ├── develop (พัฒนารวม)
+│   │   ├── feature/* (คุณสมบัติใหม่)
+│   │   └── hotfix/* (แก้ไขด่วน)
+│   └── staging (เตรียมขึ้นผลิต)
+└── tags (เก็บเวอร์ชัน)
+</code></pre>
+<h3 id="การออกแบบ-cicd-pipeline">การออกแบบ CI/CD Pipeline</h3>
+<p><strong>ขั้นตอนการทำงานหลัก:</strong></p>
+<ol>
+<li>
+<p><strong>Workflow สำหรับ Feature Branch</strong></p>
+<ul>
+<li>ทริกเกอร์: เมื่อมีการ commit/push ไปที่ feature/*</li>
+<li>การดำเนินการ:
+<ul>
+<li>ตรวจสอบรูปแบบโค้ด (linting) และวิเคราะห์โค้ด (static analysis)</li>
+<li>ทดสอบหน่วย (unit tests)</li>
+<li>สร้างแพ็คเกจ (Docker image, binary, ฯลฯ)</li>
+<li>ดีพลอยไปยังสภาพแวดล้อม development</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Workflow สำหรับ Develop Branch</strong></p>
+<ul>
+<li>ทริกเกอร์: เมื่อมีการ merge ไปที่ develop</li>
+<li>การดำเนินการ:
+<ul>
+<li>ทดสอบการรวมระบบ (integration tests)</li>
+<li>ตรวจสอบความปลอดภัย (security scanning)</li>
+<li>สร้างและดีพลอยไปยังสภาพแวดล้อม integration</li>
+<li>ทดสอบ API อัตโนมัติ</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Workflow สำหรับ Release Branch</strong></p>
+<ul>
+<li>ทริกเกอร์: เมื่อสร้าง release/* branch</li>
+<li>การดำเนินการ:
+<ul>
+<li>ทดสอบประสิทธิภาพ (performance testing)</li>
+<li>ทดสอบยอมรับผู้ใช้ (UAT)</li>
+<li>ดีพลอยไปยังสภาพแวดล้อม staging</li>
+<li>รับอนุมัติด้วยมนุษย์ก่อนขึ้น production</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Workflow สำหรับ Hotfix Branch</strong></p>
+<ul>
+<li>ทริกเกอร์: เมื่อสร้าง hotfix/* branch จาก main</li>
+<li>การดำเนินการ:
+<ul>
+<li>ตรวจสอบความปลอดภัยเร่งด่วน</li>
+<li>ทดสอบเฉพาะส่วนที่สำคัญเท่านั้น</li>
+<li>ดีพลอยไปยัง production แบบเร่งด่วน</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Workflow สำหรับ Main Branch</strong></p>
+<ul>
+<li>ทริกเกอร์: เมื่อ merge ไปที่ main (จาก release หรือ hotfix)</li>
+<li>การดำเนินการ:
+<ul>
+<li>ติดแท็กเวอร์ชัน (semantic versioning)</li>
+<li>สร้างบันทึกการปล่อยเวอร์ชัน (release notes)</li>
+<li>ดีพลอยไปยัง production</li>
+<li>ตรวจสอบการสำรองข้อมูลและการเฝ้าติดตาม</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-การออกแบบ-flow-1">2. การออกแบบ Flow</h2>
+<h3 id="แผนภาพการพัฒนาซอฟต์แวร์">แผนภาพการพัฒนาซอฟต์แวร์</h3>
+<pre><code>[คำขอคุณสมบัติใหม่] → [สร้างสาขา Feature] → [พัฒนา]
+       ↓
+[ตรวจสอบโค้ด] → [รวมกับ Develop] → [ทดสอบการรวมระบบ]
+       ↓
+[สร้างสาขา Release] → [Staging/UAT] → [อนุมัติ]
+       ↓
+[รวมกับ Main] → [ดีพลอย Production] → [เฝ้าติดตาม]
+</code></pre>
+<h3 id="กลยุทธ์การดีพลอย">กลยุทธ์การดีพลอย</h3>
+<ol>
+<li><strong>Blue-Green Deployment</strong> สำหรับ production</li>
+<li><strong>Canary Release</strong> สำหรับการทดสอบคุณสมบัติ</li>
+<li><strong>กลไกการย้อนกลับ</strong> แบบอัตโนมัติ</li>
+</ol>
+<h3 id="การกำหนดค่าสภาพแวดล้อม">การกำหนดค่าสภาพแวดล้อม</h3>
+<ul>
+<li><strong>Development</strong>: สำหรับนักพัฒนาทดสอบ</li>
+<li><strong>Integration</strong>: สำหรับทดสอบการรวมระบบ</li>
+<li><strong>Staging</strong>: สำเนาของ production สำหรับ UAT</li>
+<li><strong>Production</strong>: สภาพแวดล้อมจริง</li>
+</ul>
+<h2 id="3-task-list-template-ภาษาไทย">3. TASK LIST Template (ภาษาไทย)</h2>
+<h3 id="template-สำหรับพัฒนาคุณสมบัติใหม่">Template สำหรับพัฒนาคุณสมบัติใหม่</h3>
+<h2 id="งาน-ชื่อคุณสมบัติ">งาน: [ชื่อคุณสมบัติ]</h2>
+<p><strong>รหัส:</strong> PROJ-XXX
+<strong>ลำดับความสำคัญ:</strong> สูง/ปานกลาง/ต่ำ
+<strong>เวลาที่ประมาณการ:</strong> X วัน</p>
+<h3 id="คำอธิบาย">คำอธิบาย</h3>
+<p>[คำอธิบายโดยย่อของคุณสมบัติ]</p>
+<h3 id="เกณฑ์การยอมรับ">เกณฑ์การยอมรับ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox" checked=""type="checkbox"> เกณฑ์ที่ 1</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เกณฑ์ที่ 2</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เกณฑ์ที่ 3</li>
+</ul>
+<h3 id="ข้อกำหนดทางเทคนิค">ข้อกำหนดทางเทคนิค</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> การเปลี่ยนแปลงฐานข้อมูล (ถ้ามี)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> การเปลี่ยนแปลง API</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ข้อกำหนด UI/UX</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ข้อกำหนดประสิทธิภาพ</li>
+</ul>
+<h3 id="งานการพัฒนา">งานการพัฒนา</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> สร้างสาขา feature: <code>feature/PROJ-XXX-คำอธิบายสั้น</code></li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> พัฒนาหน้าที่หลัก</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เขียนทดสอบหน่วย (ความครอบคลุม &gt; 80%)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตเอกสาร</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เตรียมพร้อมสำหรับการตรวจสอบโค้ด</li>
+</ul>
+<h3 id="งานการทดสอบ">งานการทดสอบ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทดสอบหน่วยผ่านทั้งหมด</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทดสอบการรวมระบบ</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> รายการตรวจสอบการทดสอบด้วยมนุษย์</li>
+</ul>
+<h3 id="งานการดีพลอย">งานการดีพลอย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> รวมโค้ดกับ develop</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ดีพลอยไปยังสภาพแวดล้อม integration</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ยืนยันการดีพลอย</li>
+</ul>
+<h3 id="การพึ่งพา">การพึ่งพา</h3>
+<ul>
+<li>[การพึ่งพาที่ 1]</li>
+<li>[การพึ่งพาที่ 2]</li>
+</ul>
+<h3 id="หมายเหตุ">หมายเหตุ</h3>
+<p>[หมายเหตุเพิ่มเติมหรือความคิดเห็น]</p>
+<h3 id="template-สำหรับการเตรียมปล่อยเวอร์ชัน">Template สำหรับการเตรียมปล่อยเวอร์ชัน</h3>
+<h2 id="การปล่อยเวอร์ชัน-vxyz">การปล่อยเวอร์ชัน: vX.Y.Z</h2>
+<p><strong>วันที่ปล่อย:</strong> YYYY-MM-DD
+<strong>ผู้จัดการการปล่อย:</strong> [ชื่อ]</p>
+<h3 id="คุณสมบัติที่รวมอยู่">คุณสมบัติที่รวมอยู่</h3>
+<ul>
+<li>[คุณสมบัติ 1] - PROJ-XXX</li>
+<li>[คุณสมบัติ 2] - PROJ-YYY</li>
+<li>[การแก้ไขข้อบกพร่อง] - PROJ-ZZZ</li>
+</ul>
+<h3 id="รายการตรวจสอบก่อนปล่อย">รายการตรวจสอบก่อนปล่อย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> คุณสมบัติทั้งหมดรวมกับ develop แล้ว</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทดสอบการรวมระบบผ่านแล้ว</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทดสอบประสิทธิภาพเสร็จสิ้น</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ตรวจสอบความปลอดภัยผ่านแล้ว</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตเอกสารแล้ว</li>
+</ul>
+<h3 id="ขั้นตอนการปล่อย">ขั้นตอนการปล่อย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> สร้างสาขา release: <code>release/vX.Y.Z</code></li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตหมายเลขเวอร์ชัน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ดีพลอยไปยัง staging</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ได้รับการลงนามจาก UAT</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> รวมโค้ดกับ main</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> สร้างแท็ก git</li>
+</ul>
+<h3 id="แผนการย้อนกลับ">แผนการย้อนกลับ</h3>
+<p>[ขั้นตอนการย้อนกลับทีละขั้น]</p>
+<h2 id="4-checklist-template-ภาษาไทย">4. CHECKLIST Template (ภาษาไทย)</h2>
+<h3 id="รายการตรวจสอบการตรวจสอบโค้ด">รายการตรวจสอบการตรวจสอบโค้ด</h3>
+<h2 id="รายการตรวจสอบการตรวจสอบโค้ด-1">รายการตรวจสอบการตรวจสอบโค้ด</h2>
+<p><strong>ผู้ตรวจสอบ:</strong> [ชื่อ]
+<strong>ลิงก์ PR:</strong> [GitHub/GitLab Link]</p>
+<h3 id="คุณภาพโค้ด">คุณภาพโค้ด</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> โค้ดตามแนวทางสไตล์</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ไม่มีโค้ดที่ตาย/ถูกคอมเมนต์ออก</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> มีการจัดการข้อผิดพลาด</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> การบันทึกเหตุการณ์เหมาะสม</li>
+</ul>
+<h3 id="การทดสอบ">การทดสอบ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เพิ่ม/อัปเดตทดสอบหน่วย</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ความครอบคลุมการทดสอบเพียงพอ</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> พิจารณากรณีขอบเขต</li>
+</ul>
+<h3 id="ความปลอดภัย">ความปลอดภัย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ไม่มีข้อมูลลับในโค้ด</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> มีการตรวจสอบข้อมูลนำเข้า</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ป้องกัน SQL injection</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ป้องกัน XSS</li>
+</ul>
+<h3 id="ประสิทธิภาพ">ประสิทธิภาพ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ไม่มีหน่วยความจำรั่ว</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ประสิทธิภาพคำสั่งฐานข้อมูล</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เวลาตอบสนอง API ยอมรับได้</li>
+</ul>
+<h3 id="เอกสาร">เอกสาร</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> คอมเมนต์ในโค้ดชัดเจน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดต README (ถ้าจำเป็น)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตเอกสาร API</li>
+</ul>
+<h3 id="การอนุมัติ">การอนุมัติ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อนุมัติ</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ขอให้เปลี่ยนแปลง</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ความคิดเห็น: [เพิ่มความคิดเห็นที่นี่]</li>
+</ul>
+<h3 id="รายการตรวจสอบการดีพลอย">รายการตรวจสอบการดีพลอย</h3>
+<h2 id="รายการตรวจสอบการดีพลอย-1">รายการตรวจสอบการดีพลอย</h2>
+<p><strong>สภาพแวดล้อม:</strong> [Production/Staging]
+<strong>เวอร์ชัน:</strong> vX.Y.Z
+<strong>เวลาในการดีพลอย:</strong> YYYY-MM-DD HH:MM</p>
+<h3 id="ก่อนการดีพลอย">ก่อนการดีพลอย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> สำรองข้อมูลเสร็จสิ้น</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> การย้ายฐานข้อมูลพร้อม (ถ้ามี)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตไฟล์การกำหนดค่า</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> กำหนดค่าตัวแบ่งเบาแรงงาน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เปิดการแจ้งเตือนการเฝ้าติดตาม</li>
+</ul>
+<h3 id="ระหว่างการดีพลอย">ระหว่างการดีพลอย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ดีพลอยไปยัง 10% ของอินสแตนซ์ (Canary)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ตรวจสอบสภาพการทำงานผ่าน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เฝ้าติดตามอัตราข้อผิดพลาด</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ดีพลอยไปยังอินสแตนซ์ที่เหลือ</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ยืนยันการทำงานของบริการทั้งหมด</li>
+</ul>
+<h3 id="หลังการดีพลอย">หลังการดีพลอย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทดสอบพื้นฐานผ่าน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ยืนยันจุดปลายทาง API</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ยืนยันการเชื่อมต่อฐานข้อมูล</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> การเฝ้าติดตามประสิทธิภาพเสถียร</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> แจ้งผู้มีส่วนได้ส่วนเสีย</li>
+</ul>
+<h3 id="ความพร้อมสำหรับการย้อนกลับ">ความพร้อมสำหรับการย้อนกลับ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> สคริปต์ย้อนกลับพร้อม</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อาร์ติแฟกต์เวอร์ชันก่อนหน้าพร้อม</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทีมพร้อม standby 1 ชั่วโมงหลังดีพลอย</li>
+</ul>
+<h3 id="รายการตรวจสอบการปล่อยเวอร์ชันสู่-production">รายการตรวจสอบการปล่อยเวอร์ชันสู่ production</h3>
+<h2 id="รายการตรวจสอบการปล่อยเวอร์ชันสู่-production-1">รายการตรวจสอบการปล่อยเวอร์ชันสู่ Production</h2>
+<p><strong>การปล่อย:</strong> vX.Y.Z
+<strong>กำหนดการ:</strong> YYYY-MM-DD HH:MM
+<strong>ช่วงเวลาการเปลี่ยนแปลง:</strong> [ช่วงเวลา]</p>
+<h3 id="ต้องได้รับการอนุมัติ">ต้องได้รับการอนุมัติ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อนุมัติโดย Product Owner</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อนุมัติโดย Tech Lead</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อนุมัติโดย DevOps</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อนุมัติโดยธุรกิจ (ถ้าเป็นเวอร์ชันสำคัญ)</li>
+</ul>
+<h3 id="การสื่อสาร">การสื่อสาร</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> แจ้งผู้มีส่วนได้ส่วนเสีย</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> บรีฟทีมสนับสนุน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> หน้าแจ้งบำรุงรักษาพร้อม (ถ้าจำเป็น)</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> แผนการสื่อสารการย้อนกลับพร้อม</li>
+</ul>
+<h3 id="การยืนยัน">การยืนยัน</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทดสอบอัตโนมัติทั้งหมดผ่าน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ทดสอบประสิทธิภาพผ่าน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ตรวจสอบความปลอดภัยผ่าน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ตรงตามข้อกำหนดการปฏิบัติตาม</li>
+</ul>
+<h3 id="การลงนาม">การลงนาม</h3>
+<p><strong>ผู้จัดการการปล่อย:</strong> ___________________
+<strong>วันที่/เวลา:</strong> _________________________
+<strong>สถานะ:</strong> ☐ สำเร็จ  ☐ ย้อนกลับแล้ว
+<strong>หมายเหตุ:</strong> ____________________________</p>
+<h3 id="รายการตรวจสอบการแก้ไขด่วน-hotfix">รายการตรวจสอบการแก้ไขด่วน (Hotfix)</h3>
+<h2 id="รายการตรวจสอบการแก้ไขด่วนฉุกเฉิน">รายการตรวจสอบการแก้ไขด่วนฉุกเฉิน</h2>
+<p><strong>ปัญหา:</strong> [คำอธิบายสั้น]
+<strong>ความรุนแรง:</strong> วิกฤต/สูง
+<strong>สาขา Hotfix:</strong> hotfix/คำอธิบายปัญหา</p>
+<h3 id="การประเมิน">การประเมิน</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ประเมินผลกระทบทางธุรกิจ</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ระบุสาเหตุราก</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ยืนยันการแก้ไขในสภาพแวดล้อม dev</li>
+</ul>
+<h3 id="การดำเนินการ">การดำเนินการ</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เปลี่ยนแปลงเฉพาะส่วนที่จำเป็น</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตการทดสอบ</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตเอกสาร</li>
+</ul>
+<h3 id="การดีพลอย">การดีพลอย</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ได้รับอนุมัติฉุกเฉิน</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ดีพลอยไปยัง production</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> ยืนยันทันที</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> เฝ้าติดตามอย่างใกล้ชิด 24 ชั่วโมง</li>
+</ul>
+<h3 id="ต้องมีการทบทวนหลังเหตุการณ์">ต้องมีการทบทวนหลังเหตุการณ์</h3>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> จัดการประชุมทบทวนหลังเหตุการณ์</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> บันทึกบทเรียนที่เรียนรู้</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> อัปเดตเอกสารวิธีการทำงาน</li>
+</ul>
+<p><strong>ประโยชน์ของการใช้ template เหล่านี้:</strong></p>
+<ol>
+<li><strong>มาตรฐานการทำงาน</strong> - ทีมพัฒนาทำงานในรูปแบบเดียวกัน</li>
+<li><strong>ลดข้อผิดพลาด</strong> - มีรายการตรวจสอบช่วยเตือน</li>
+<li><strong>ติดตามได้</strong> - รู้สถานะการทำงานทุกขั้นตอน</li>
+<li><strong>สื่อสารชัดเจน</strong> - ทุกคนเข้าใจกระบวนการเดียวกัน</li>
+<li><strong>พัฒนาคุณภาพ</strong> - มีการตรวจสอบหลายขั้นตอนก่อนปล่อย</li>
+</ol>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>
