@@ -3,16 +3,18 @@ Scrum
 •	4 Scrum Events: Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective
 •	3 Scrum Artifacts (Tools): Product Backlog, Sprint Backlog and Burndown Chart
 
+Java Spring Boot +ORM +JWT +RESTAPI
 1.สร้างบทนำ
 2.สร้างบทนิยาม
 3.สร้างบทหัวข้อ
 5.ออกแบบคู่มือ
 6.ออกแบบ workflow
+
 7.TASK LIST Template
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -92,7 +94,7 @@ Scrum Master Service to the Organization
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -130,7 +132,7 @@ Development Teams กําหนดโครงสร้าง และ เพ
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -161,7 +163,7 @@ Begins with the creation of “user stories”
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -190,7 +192,7 @@ What can be delivered in the Increment resulting from the upcoming Sprint? How w
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -212,7 +214,7 @@ Sprint Backlog คือ ช่วงที่จะต้องทํางา�
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -248,7 +250,7 @@ Daily Scrum มีลักษณะเป็นการประชุมอ�
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -278,7 +280,7 @@ Sprint ถัดไป Product Backlog อาจถูกปรับปรุ�
 8.CHECKLIST Template
 7.TASK LIST Template  cxcel file
 8.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
@@ -309,7 +311,7 @@ Scrum Master กระตุ้น Scrum Team ให้ปรับปรุง�
 9.CHECKLIST Template
 10.TASK LIST Template  cxcel file
 11.CHECKLIST Template  cxcel file
-ออกแบบ 2 ภาษาไทย
+ออกแบบ 2 ภาษา
 1.Enhlish
 2.ภาษาไทย
 
