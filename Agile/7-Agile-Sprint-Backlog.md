@@ -159,13 +159,13 @@ Sprint Backlog เป็นสิ่งสำคัญในกระบวน�
 **During Sprint Planning (Creation of Sprint Backlog):**
 - [ ] Team has selected PBIs that align with the Sprint Goal.
 - [ ] Each selected PBI has been broken down into actionable tasks.
-- [ ] Tasks are small enough to be completed within a few days (理想: 1-2 days).
+- [ ] Tasks are small enough to be completed within a few days (1-2 days).
 - [ ] Each task has an hour estimate (not mandatory but helpful).
 - [ ] The total estimated effort does not exceed the team's capacity.
 - [ ] Sprint Backlog is visualized on a board or tool accessible to all.
 
 **During the Sprint (Management):**
-- [ ] Sprint Backlog is updated daily (至少 after Daily Scrum).
+- [ ] Sprint Backlog is updated daily (after Daily Scrum).
 - [ ] Task status reflects current reality.
 - [ ] New tasks are added as discovered ("emergence").
 - [ ] Impediments are visualized on the board.
