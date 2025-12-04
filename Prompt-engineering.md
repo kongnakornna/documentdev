@@ -1,3 +1,20 @@
+#### Prompt engineering 
+1.สร้างบทนำ
+2.สร้างบทนิยาม
+3.สร้างบทหัวข้อ
+5.ออกแบบคู่มือ
+6.ออกแบบ workflow
+7.TASK LIST Template
+8.CHECKLIST Template
+ออกแบบ 2 ภาษา
+1.Enhlish
+2.ภาษาไทย
+
+Prompt engineering คืออะไร ออกแบบ Prompt template ยกตัวอย่าง ออกแบบระบบ ระบบ ERP-CRM-IoT Monitoring System
+อธิบาย 2 ภาษา
+1.Enhlish
+2.ภาษาไทย
+
 #### Prompt engineering คืออะไร? แนวคิดสร้าง AI ที่มีประสิทธิภาพ
 - 1.สร้างบทนำ
 - 2.สร้างบทนิยาม

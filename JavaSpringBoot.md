@@ -1,16 +1,17 @@
-#### **เอกสารประกอบการพัฒนา Java Spring Boot + ORM + JWT + REST API**  
+##### **เอกสารประกอบการพัฒนา Java Spring Boot + ORM + JWT + REST API**  
+---
 **(Development Guide: Java Spring Boot + ORM + JWT + REST API)**  
 
 ---
 
-### **1. บทนำ (Introduction)**  
-ระบบ REST API ที่พัฒนาด้วย **Java Spring Boot** ร่วมกับ **ORM (JPA/Hibernate)** สำหรับจัดการข้อมูล, **JWT (JSON Web Token)** สำหรับการรักษาความปลอดภัย และออกแบบให้เป็น **RESTful API** เพื่อให้บริการแก่แอปพลิเคชันฝั่ง Client โดยเน้นความปลอดภัย, ประสิทธิภาพ, และการบำรุงรักษาที่ง่าย  
+##### **1. บทนำ (Introduction)**  
+- ระบบ REST API ที่พัฒนาด้วย **Java Spring Boot** ร่วมกับ **ORM (JPA/Hibernate)** สำหรับจัดการข้อมูล, **JWT (JSON Web Token)** สำหรับการรักษาความปลอดภัย และออกแบบให้เป็น **RESTful API** เพื่อให้บริการแก่แอปพลิเคชันฝั่ง Client โดยเน้นความปลอดภัย, ประสิทธิภาพ, และการบำรุงรักษาที่ง่าย  
 
-A REST API system developed with **Java Spring Boot**, integrated with **ORM (JPA/Hibernate)** for data management, **JWT (JSON Web Token)** for security, and designed as a **RESTful API** to serve client applications. Focus is on security, performance, and maintainability.
+- A REST API system developed with **Java Spring Boot**, integrated with **ORM (JPA/Hibernate)** for data management, **JWT (JSON Web Token)** for security, and designed as a **RESTful API** to serve client applications. Focus is on security, performance, and maintainability.
 
 ---
 
-### **2. บทนิยาม (Definitions)**  
+##### **2. บทนิยาม (Definitions)**  
 - **Spring Boot**: Framework สำหรับพัฒนา Java-based web applications แบบ standalone  
 - **ORM (Object-Relational Mapping)**: เทคนิคสำหรับแปลงข้อมูลระหว่างระบบฐานข้อมูลเชิงสัมพันธ์และวัตถุเชิงโปรแกรม  
 - **JWT (JSON Web Token)**: โปรโตคอลสำหรับสร้าง access token ที่ปลอดภัย  
@@ -25,22 +26,219 @@ A REST API system developed with **Java Spring Boot**, integrated with **ORM (JP
 
 ---
 
-### **3. บทหัวข้อ (Topics)**  
-#### 3.1 การตั้งค่าโครงการ (Project Setup)  
-#### 3.2 การกำหนดโครงสร้างฐานข้อมูล (Database Schema Design)  
-#### 3.3 การสร้าง Entity และ Repository (Entity & Repository Creation)  
-#### 3.4 การสร้าง REST Controller (REST Controller Creation)  
-#### 3.5 การกำหนดความปลอดภัยด้วย Spring Security + JWT (Security with Spring Security + JWT)  
-#### 3.6 การตรวจสอบข้อมูล (Validation)  
-#### 3.7 การจัดการข้อผิดพลาด (Error Handling)  
-#### 3.8 การทดสอบ (Testing)  
-#### 3.9 การปรับใช้ (Deployment)  
+
+##### **3. บทหัวข้อ (Topics)**  
+ 3.1 การตั้งค่าโครงการ (Project Setup)  
+ 3.2 การกำหนดโครงสร้างฐานข้อมูล (Database Schema Design)  
+ 3.3 การสร้าง Entity และ Repository (Entity & Repository Creation)  
+ 3.4 การสร้าง REST Controller (REST Controller Creation)  
+ 3.5 การกำหนดความปลอดภัยด้วย Spring Security + JWT (Security with Spring Security + JWT)  
+ 3.6 การตรวจสอบข้อมูล (Validation)  
+ 3.7 การจัดการข้อผิดพลาด (Error Handling)  
+ 3.8 การทดสอบ (Testing)  
+ 3.9 การปรับใช้ (Deployment)  
 
 ---
+##### **4.REST API** 
 
-### **5. ออกแบบคู่มือ (Manual Design)**  
+ - REST API เป็นรูปแบบสถาปัตยกรรม (Architectural Style) สำหรับการสร้างเว็บเซอร์วิซ ที่ใช้ HTTP protocol ในการสื่อสารระหว่าง Client และ Server 
 
-#### **โครงสร้างโฟลเดอร์ (Folder Structure)**  
+##### **REST API (Representational State Transfer API)**
+
+##### **ความหมายและแนวคิด**
+**REST API** เป็นรูปแบบสถาปัตยกรรม (Architectural Style) สำหรับการสร้างเว็บเซอร์วิซ ที่ใช้ HTTP protocol ในการสื่อสารระหว่าง **Client** และ **Server**
+
+##### **6 Constraints (หลักการสำคัญ)**
+
+#### 1. **Client-Server Architecture**
+   - Client และ Server แยกจากกันโดยสิ้นเชิง
+   - Server ดูแลจัดการข้อมูล, Client ดูแล User Interface
+
+#### 2. **Stateless**
+   - **ทุก Request ต้องมีข้อมูลครบถ้วน** สำหรับ Server ในการประมวลผล
+   - Server ไม่เก็บ Session State ของ Client
+   ```
+   GET /users/123
+   Authorization: Bearer <token>  ← ต้องส่ง token ทุกครั้ง
+   ```
+
+#### 3. **Cacheable**
+   - Response ต้องระบุได้ว่าสามารถ Cache หรือไม่
+   ```
+   HTTP/1.1 200 OK
+   Cache-Control: max-age=3600
+   ```
+
+#### 4. **Uniform Interface**
+   - **Resource-Based**: ทุกอย่างเป็น Resource (users, products, orders)
+   - **Manipulation through Representations**: จัดการผ่าน JSON/XML
+   - **Self-descriptive Messages**: ข้อมูลใน Request/Response ชัดเจน
+   - **HATEOAS**: Hypermedia as the Engine of Application State
+
+#### 5. **Layered System**
+   - Client ไม่จำเป็นต้องรู้ว่าเชื่อมต่อกับ Server ชั้นไหน
+   ```
+   Client → Load Balancer → Server → Database
+   ```
+
+#### 6. **Code on Demand (Optional)**
+   - Server สามารถส่ง code (เช่น JavaScript) ให้ Client รันได้
+
+#### **RESTful Design Principles**
+
+#### **1. Resource Naming (การตั้งชื่อ Resource)**
+```http
+/users          ← Collection ของ users
+/users/123      ← User รายเดียว ID 123
+/users/123/orders  ← Orders ของ user 123
+```
+
+#### **2. HTTP Methods (CRUD Operations)**
+| Method | ความหมาย | ตัวอย่าง |
+|--------|----------|----------|
+| **GET** | ดึงข้อมูล | `GET /products` |
+| **POST** | สร้างใหม่ | `POST /products` |
+| **PUT** | อัพเดททั้งหมด | `PUT /products/123` |
+| **PATCH** | อัพเดทบางส่วน | `PATCH /products/123` |
+| **DELETE** | ลบ | `DELETE /products/123` |
+
+#### **3. HTTP Status Codes**
+
+```http
+200 OK                    ← สำเร็จ
+201 Created               ← สร้างใหม่สำเร็จ
+204 No Content            ← ลบสำเร็จ (ไม่มีเนื้อหา)
+400 Bad Request           ← Request ผิดรูปแบบ
+401 Unauthorized          ← ไม่มีสิทธิ์
+403 Forbidden             ← ถูกห้าม
+404 Not Found             ← ไม่พบ Resource
+500 Internal Server Error ← Server Error
+```
+
+#### **ตัวอย่าง REST API Endpoints**
+
+#### **User Management API**
+```http
+# ดึงข้อมูล users ทั้งหมด
+GET    /api/v1/users
+
+# ดึงข้อมูล user ID 123
+GET    /api/v1/users/123
+
+# สร้าง user ใหม่
+POST   /api/v1/users
+Body: {"name": "John", "email": "john@example.com"}
+
+# อัพเดท user
+PUT    /api/v1/users/123
+Body: {"name": "John Updated"}
+
+# ลบ user
+DELETE /api/v1/users/123
+```
+
+#### **Filtering, Sorting, Pagination**
+```http
+GET /api/v1/products?category=electronics&sort=price&page=1&limit=10
+```
+
+#### **รูปแบบข้อมูล (Data Formats)**
+
+#### **JSON (ที่นิยมที่สุด)**
+```json
+{
+  "id": 123,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+#### **XML**
+```xml
+<user>
+  <id>123</id>
+  <name>John Doe</name>
+  <email>john@example.com</email>
+</user>
+```
+
+#### **Versioning (การจัดการเวอร์ชัน)**
+```http
+/api/v1/users     ← เวอร์ชัน 1
+/api/v2/users     ← เวอร์ชัน 2
+```
+
+#### **Authentication (การยืนยันตัวตน)**
+
+```http
+# 1. API Key
+GET /api/data
+X-API-Key: your-api-key
+
+# 2. Bearer Token (JWT)
+GET /api/data
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+
+# 3. Basic Auth
+GET /api/data
+Authorization: Basic base64(username:password)
+```
+
+#### **ข้อดีของ REST API**
+1. **Stateless** → Scalable ได้ง่าย
+2. **ใช้ HTTP Standard** → เข้าใจและใช้งานง่าย
+3. **Client-Server Separation** → พัฒนาแยกกันได้
+4. **Cacheable** → เพิ่ม Performance
+5. **Uniform Interface** → Consistent Design
+
+#### **ข้อเสีย**
+1. **Over-fetching/Under-fetching** (แก้ด้วย GraphQL)
+2. **ไม่มีมาตรฐานโครงสร้าง Response** (ต้องกำหนดเอง)
+3. **Versioning** อาจซับซ้อน
+
+#### **ตัวอย่างจริงใน Spring Boot**
+```java
+@RestController
+@RequestMapping("/api/v1/users")
+public class UserController {
+    
+    @GetMapping
+    public ResponseEntity<List<User>> getUsers() {
+        // ดึงข้อมูล users
+        return ResponseEntity.ok(users);
+    }
+    
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        // สร้าง user ใหม่
+        return ResponseEntity.status(201).body(createdUser);
+    }
+}
+```
+
+#### **REST vs SOAP**
+| ด้าน | REST | SOAP |
+|------|------|------|
+| โปรโตคอล | HTTP | HTTP, SMTP, TCP |
+| Data Format | JSON, XML | XML เท่านั้น |
+| State | Stateless | Stateful/Stateless |
+| Performance | ดีกว่า | ช้ากว่า |
+| Learning Curve | ง่าย | ยาก |
+
+#### **Best Practices**
+1. ใช้ **Nouns** ไม่ใช่ Verbs (`/users` ไม่ใช่ `/getUsers`)
+2. ใช้ **Plural Nouns** (`/products` ไม่ใช่ `/product`)
+3. ใช้ **Hyphens** ไม่ใช่ underscores (`/user-profiles`)
+4. ใช้ **Query Parameters** สำหรับ filtering
+5. ใช้ **HTTP Status Codes** ให้ถูกต้อง
+6. ใช้ **Versioning** ใน URL
+
+- REST API เป็นมาตรฐานที่นิยมที่สุดสำหรับการสร้าง Web Services ในปัจจุบัน เพราะใช้ง่าย โครงสร้างชัดเจน และทำงานได้ดีกับ HTTP protocol ที่มีอยู่แล้ว
+
+##### **5. ออกแบบคู่มือ (Manual Design)**  
+
+##### **โครงสร้างโฟลเดอร์ (Folder Structure)**  
 
 src/main/java/com/example/
 ├── config/           // Configuration classes
@@ -53,7 +251,7 @@ src/main/java/com/example/
 └── exception/       // Custom exceptions
 
 
-#### **ขั้นตอนการทำงาน (Step-by-Step Process)**  
+##### **ขั้นตอนการทำงาน (Step-by-Step Process)**  
 1. สร้าง Spring Boot Project ด้วย **Spring Initializr**  
 2. กำหนด dependencies: Spring Web, Spring Data JPA, Spring Security, JWT, Database Driver  
 3. กำหนดการเชื่อมต่อฐานข้อมูลใน `application.properties`  
@@ -67,10 +265,11 @@ src/main/java/com/example/
 
 ---
 
-### **6. ออกแบบ Workflow**  
+##### **6. ออกแบบ Workflow**  
 
-mermaid
-graph TD
+- mermaid
+- graph TD
+```
     A[Client Request] --> B{JWT Valid?}
     B -->|No| C[Return 401 Unauthorized]
     B -->|Yes| D[Spring Security Filter]
@@ -83,13 +282,80 @@ graph TD
     H --> G
     G --> F
     F --> J[Return JSON Response]
+```
+- This is a **Spring Security JWT authentication flow diagram** that visualizes the request processing pipeline in a typical Spring Boot application with JWT-based authentication. Here's the breakdown:
 
+##### **Flow Explanation:**
 
+##### **1. Initial Request Phase**
+- **A**: Client sends HTTP request with JWT token (usually in `Authorization` header)
+- **B**: Spring Security checks if the JWT token is valid (signature, expiration, etc.)
+
+##### **2. Authentication Decision**
+- **C**: If JWT is **invalid** → Immediately returns `401 Unauthorized`
+- **D**: If JWT is **valid** → Request proceeds through Spring Security filter chain
+
+##### **3. Spring Processing Pipeline**
+- **D**: Spring Security extracts user details/authorities from JWT and sets up `SecurityContext`
+- **E**: Request reaches **DispatcherServlet** (Spring MVC's front controller)
+- **F**: DispatcherServlet routes to appropriate **Controller** based on @RequestMapping
+
+##### **4. Business Logic Flow**
+- **F → G**: Controller calls **Service layer** (business logic)
+- **G → H**: Service calls **Repository layer** (data access)
+- **H → I**: Repository interacts with **Database** via JPA/Spring Data
+
+##### **5. Response Flow**
+- **I → H → G → F**: Data flows back up through the layers
+- **J**: Controller returns **JSON response** (typically with `@ResponseBody` or `@RestController`)
+
+##### **Key Components Implied:**
+
+1. **JWT Filter**: Custom `OncePerRequestFilter` that validates tokens
+2. **Security Configuration**: `WebSecurityConfigurerAdapter` or `SecurityFilterChain` bean
+3. **Authentication Provider**: Extracts claims and creates `Authentication` object
+4. **Controller-Service-Repository**: Standard Spring layered architecture
+
+##### **Typical Implementation Snippets:**
+
+```java
+// JWT Filter
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
+                                    FilterChain chain) {
+        // Extract & validate JWT
+        // Set Authentication in SecurityContextHolder
+    }
+}
+
+// Security Configuration
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) {
+        http.addFilterBefore(jwtAuthenticationFilter(), 
+                            UsernamePasswordAuthenticationFilter.class)
+            .authorizeRequests()
+            .antMatchers("/api/public/**").permitAll()
+            .anyRequest().authenticated();
+        return http.build();
+    }
+}
+```
+
+##### **Request/Response Headers:**
+- **Request**: `Authorization: Bearer <jwt-token>`
+- **Response**: `Content-Type: application/json`
+
+- This architecture provides **stateless authentication** where each request carries its own authentication information, making it scalable for distributed systems.
 ---
 
-### **7. TASK LIST Template (Excel/Sheet)**  
+##### **7. TASK LIST Template (Excel/Sheet)**  
 
-#### **English Version**  
+##### **English Version**  
 | Task ID | Task Name                          | Priority | Status      | Assigned To | Start Date | Due Date   |
 |---------|------------------------------------|----------|-------------|-------------|------------|------------|
 | T001    | Project Setup                      | High     | Completed   | Developer   | 2024-01-01 | 2024-01-05 |
@@ -101,7 +367,7 @@ graph TD
 | T007    | Testing                            | Medium   | Pending     | QA          | 2024-01-22 | 2024-01-30 |
 | T008    | Deployment                         | High     | Pending     | DevOps      | 2024-01-28 | 2024-02-05 |
 
-#### **ภาษาไทย**  
+##### **ภาษาไทย**  
 | รหัสงาน | ชื่องาน                         | ความสำคัญ | สถานะ      | ผู้รับผิดชอบ | วันที่เริ่ม | วันครบกำหนด |
 |---------|--------------------------------|-----------|------------|-------------|------------|-------------|
 | T001    | การตั้งค่าโครงการ               | สูง       | เสร็จสิ้น   | Developer   | 2024-01-01 | 2024-01-05  |
@@ -115,9 +381,9 @@ graph TD
 
 ---
 
-### **8. CHECKLIST Template (Excel/Sheet)**  
+##### **8. CHECKLIST Template (Excel/Sheet)**  
 
-#### **English Version**  
+##### **English Version**  
 | Category       | Task                                             | Done | Remarks               |
 |----------------|--------------------------------------------------|------|-----------------------|
 | Project Setup  | Initialize Spring Boot project                   | [ ]  |                       |
@@ -138,7 +404,7 @@ graph TD
 | Deployment     | Configure application.properties for production  | [ ]  |                       |
 |                | Deploy to server/cloud                           | [ ]  |                       |
 
-#### **ภาษาไทย**  
+##### **ภาษาไทย**  
 | หมวดหมู่       | งาน                                               | เสร็จ | หมายเหตุ               |
 |----------------|--------------------------------------------------|------|-----------------------|
 | การตั้งค่าโครงการ | เริ่มต้นโครงการ Spring Boot                     | [ ]  |                       |
@@ -161,24 +427,24 @@ graph TD
 
 ---
 
-### **ไฟล์ Excel**  
-เนื่องจากข้อจำกัดของรูปแบบข้อความ ฉันได้ออกแบบเทมเพลตด้านบนสำหรับ **TASK LIST** และ **CHECKLIST** ซึ่งสามารถคัดลอกไปใช้ใน Excel โดยตรง  
+##### **ไฟล์ Excel**  
+- เนื่องจากข้อจำกัดของรูปแบบข้อความ ฉันได้ออกแบบเทมเพลตด้านบนสำหรับ **TASK LIST** และ **CHECKLIST** ซึ่งสามารถคัดลอกไปใช้ใน Excel โดยตรง  
 
 - **TASK LIST**: สร้างแผ่นงานชื่อ "Task List" และใช้ตารางตามตัวอย่าง  
 - **CHECKLIST**: สร้างแผ่นงานชื่อ "Checklist" และใช้ตารางตามตัวอย่าง  
 
-สำหรับไฟล์ Excel จริงสามารถสร้างโดย:
+##### สำหรับไฟล์ Excel จริงสามารถสร้างโดย:
 1. เปิดโปรแกรม Excel
 2. คัดลอกตารางด้านบนไปวาง
 3. บันทึกไฟล์เป็นชื่อ `Spring_Boot_Project_Template.xlsx`
 4. เพิ่มแผ่นงานแยกสำหรับภาษาอังกฤษและภาษาไทย
 
 ---
-# **ระบบ ERP + CRM + IoT Monitoring ด้วย Java Spring Boot**
-## **Enterprise Integration Platform Design**
+##### **ระบบ ERP + CRM + IoT Monitoring ด้วย Java Spring Boot**
+##### **Enterprise Integration Platform Design**
 
-## **1. โครงสร้างระบบโดยรวม (System Architecture)**
-
+##### **1. โครงสร้างระบบโดยรวม (System Architecture)**
+```
 mermaid
 graph TB
     subgraph "External Systems"
@@ -249,11 +515,12 @@ graph TB
     MS9 --> DB
     
     MS15 --> ES
+```
 
+##### **2. โมดูลหลัก (Core Modules)**
 
-## **2. โมดูลหลัก (Core Modules)**
-
-### **2.1 ERP Module**
+##### **2.1 ERP Module**
+```
 java
 // ตัวอย่าง Entity Structure
 @Entity
@@ -317,7 +584,7 @@ public class Ledger {
 }
 
 
-### **2.2 CRM Module**
+##### **2.2 CRM Module**
 java
 @Entity
 @Table(name = "crm_customers")
@@ -372,7 +639,7 @@ public class Opportunity {
 }
 
 
-### **2.3 IoT Monitoring Module**
+##### **2.3 IoT Monitoring Module**
 java
 @Entity
 @Table(name = "iot_devices")
@@ -448,11 +715,11 @@ public class AlertRule {
     private List<AlertLog> alerts;
 }
 
+```
+##### **3. Spring Boot Configuration**
 
-## **3. Spring Boot Configuration**
-
-### **3.1 Multi-Module Project Structure**
-
+##### **3.1 Multi-Module Project Structure**
+```
 erp-crm-iot-system/
 ├── pom.xml (Parent)
 ├── api-gateway/
@@ -477,16 +744,17 @@ erp-crm-iot-system/
     ├── common-lib/
     ├── security-module/
     └── notification-service/
+```
 
-
-### **3.2 Main Application Configuration**
+##### **3.2 Main Application Configuration**
+```
 yaml
-# application.yml
+##### application.yml
 spring:
   application:
     name: erp-crm-iot-system
   
-  # Database Configuration
+  ##### Database Configuration
   datasource:
     url: jdbc:postgresql://localhost:5432/erp_system
     username: ${DB_USERNAME}
@@ -495,7 +763,7 @@ spring:
       maximum-pool-size: 20
       minimum-idle: 5
   
-  # JPA Configuration
+  ##### JPA Configuration
   jpa:
     hibernate:
       ddl-auto: update
@@ -507,7 +775,7 @@ spring:
         order_inserts: true
         order_updates: true
   
-  # Kafka for IoT Events
+  ##### Kafka for IoT Events
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -517,13 +785,13 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
-# JWT Configuration
+##### JWT Configuration
 jwt:
   secret: ${JWT_SECRET:your-256-bit-secret}
-  expiration: 86400000 # 24 hours
-  refresh-expiration: 604800000 # 7 days
+  expiration: 86400000 ##### 24 hours
+  refresh-expiration: 604800000 ##### 7 days
 
-# IoT MQTT Configuration
+##### IoT MQTT Configuration
 iot:
   mqtt:
     broker-url: tcp://localhost:1883
@@ -531,10 +799,10 @@ iot:
     password: ${MQTT_PASSWORD}
     client-id: erp-iot-server
     qos: 1
+```
 
-
-## **4. Security & Authentication**
-
+##### **4. Security & Authentication**
+```
 java
 @Configuration
 @EnableWebSecurity
@@ -585,10 +853,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new CorsFilter(source);
     }
 }
+```
 
-
-## **5. IoT Real-time Monitoring Implementation**
-
+##### **5. IoT Real-time Monitoring Implementation**
+```
 java
 @Service
 public class IoTMonitoringService {
@@ -689,9 +957,9 @@ public class IoTMonitoringService {
     }
 }
 
-
-## **6. Integration Points**
-
+```
+##### **6. Integration Points**
+```
 java
 // ERP-CRM Integration
 @Service
@@ -752,10 +1020,10 @@ public class SmartInventoryService {
         );
     }
 }
+```
 
-
-## **7. Dashboard & Reporting**
-
+##### **7. Dashboard & Reporting**
+```
 java
 @RestController
 @RequestMapping("/api/dashboard")
@@ -817,9 +1085,9 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
     );
 }
 
-
-## **8. TASK LIST สำหรับโครงการ**
-
+```
+##### **8. TASK LIST สำหรับโครงการ**
+```
 | Phase | Module | Task | Priority | Estimated Days |
 |-------|--------|------|----------|----------------|
 | 1 | Infrastructure | Setup Microservices Architecture | High | 5 |
@@ -841,10 +1109,10 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | 6 | Mobile | React Native Mobile App | Medium | 15 |
 | 7 | DevOps | CI/CD Pipeline Setup | High | 5 |
 | 7 | DevOps | Docker & Kubernetes Deployment | High | 7 |
+```
+##### **9. CHECKLIST สำหรับแต่ละโมดูล**
 
-## **9. CHECKLIST สำหรับแต่ละโมดูล**
-
-### **ERP Module Checklist**
+##### **ERP Module Checklist**
 - [x] Inventory Management (CRUD)
 - [x] Purchase Order Processing
 - [ ] Sales Order Processing
@@ -856,7 +1124,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - [ ] Tax Calculation
 - [ ] Reporting & Analytics
 
-### **CRM Module Checklist**
+##### **CRM Module Checklist**
 - [ ] Customer Profile Management
 - [ ] Contact Management
 - [ ] Sales Opportunity Tracking
@@ -868,7 +1136,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - [ ] Customer Segmentation
 - [ ] Customer Satisfaction Survey
 
-### **IoT Module Checklist**
+##### **IoT Module Checklist**
 - [ ] Device Registration & Authentication
 - [ ] MQTT/HTTP Protocol Support
 - [ ] Real-time Data Ingestion
@@ -880,9 +1148,9 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - [ ] Energy Consumption Monitoring
 - [ ] Real-time Dashboard
 
-## **10. เทคโนโลยีที่แนะนำ (Recommended Tech Stack)**
+##### **10. เทคโนโลยีที่แนะนำ (Recommended Tech Stack)**
  
-### **Backend:**
+##### **Backend:**
 - Java 17+ 
 - Spring Boot 3.x
 - Spring Cloud (Gateway, Config, Discovery)
@@ -890,32 +1158,32 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - Spring Data JPA + Hibernate
 - Spring WebFlux (for reactive IoT)
 
-### **Database:**
+##### **Database:**
 - PostgreSQL (Transactional data)
 - TimescaleDB (IoT time-series data)
 - Redis (Caching & Session)
 - Elasticsearch (Analytics & Search)
 - MongoDB (Optional for flexible schemas)
 
-### **Messaging & Streaming:**
+##### **Messaging & Streaming:**
 - Apache Kafka (Event streaming)
 - MQTT Broker (Mosquitto/EMQX)
 - RabbitMQ (Optional for queuing)
 
-### **Frontend:**
+##### **Frontend:**
 - React.js with TypeScript (Admin Dashboard)
 - React Native (Mobile App)
 - Chart.js/D3.js (Data Visualization)
 - Socket.io/WebSocket (Real-time updates)
 
-### **DevOps:**
+##### **DevOps:**
 - Docker & Docker Compose
 - Kubernetes (Production)
 - Jenkins/GitLab CI
 - Prometheus + Grafana (Monitoring)
 - ELK Stack (Logging)
 
-## **11. แนวทางการพัฒนา (Development Guidelines)**
+##### **11. แนวทางการพัฒนา (Development Guidelines)**
 
 1. **Domain-Driven Design (DDD)** สำหรับแต่ละ bounded context
 2. **Event-Driven Architecture** สำหรับการสื่อสารระหว่าง microservices
@@ -925,9 +1193,9 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 6. **Test-Driven Development** ด้วย coverage > 80%
 7. **Continuous Integration/Deployment** pipeline
 
-## **12. ขนาดทีมและระยะเวลา (Team & Timeline)**
+##### **12. ขนาดทีมและระยะเวลา (Team & Timeline)**
 
-### **ทีมพัฒนาแนะนำ:**
+##### **ทีมพัฒนาแนะนำ:**
 - Backend Developers: 4-5 คน
 - Frontend Developers: 2-3 คน
 - IoT Specialist: 1-2 คน
@@ -935,7 +1203,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - QA Engineer: 2 คน
 - Project Manager: 1 คน
 
-### **ระยะเวลาพัฒนา:**
+##### **ระยะเวลาพัฒนา:**
 - Phase 1 (Foundation): 4-6 สัปดาห์
 - Phase 2 (ERP Core): 8-10 สัปดาห์
 - Phase 3 (CRM Core): 6-8 สัปดาห์
@@ -947,28 +1215,28 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 
 ------------
 
-# **CODE REVIEW & PULL REQUEST TEMPLATE**
-## **Template 2 ภาษา (ไทย/อังกฤษ)**
+##### **CODE REVIEW & PULL REQUEST TEMPLATE**
+##### **Template 2 ภาษา (ไทย/อังกฤษ)**
 
 ---
 
-# **ภาษาอังกฤษ (English Version)**
+##### **ภาษาอังกฤษ (English Version)**
 
-## **1. PULL REQUEST TEMPLATE**
+##### **1. PULL REQUEST TEMPLATE**
 
-### **PR Title Format:**
+##### **PR Title Format:**
  
-## [Type] Brief description of changes
+##### [Type] Brief description of changes
  
 **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`
 
-### **PR Description Template:**
+##### **PR Description Template:**
 
-## Description
+##### Description
 <!-- Describe the purpose of this PR -->
 
-## Type of Change
-- [ ] New feature (non-breaking change)
+##### Type of Change
+- [x] New feature (non-breaking change)
 - [ ] Bug fix (non-breaking change)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
@@ -977,65 +1245,65 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - [ ] Test coverage improvement
 - [ ] Other (please describe):
 
-## Related Issues
+##### Related Issues
 <!-- Link to JIRA tickets or GitHub issues -->
-- Fixes #<issue_number>
-- Related to #<issue_number>
+- Fixes <issue_number>
+- Related to <issue_number>
 
-## Changes Made
+##### Changes Made
 <!-- List specific changes -->
-1. 
-2. 
-3. 
+1. update function changes password
+2. add news validate type username
+3. add news validate type password
 
-## Technical Details
+##### Technical Details
 <!-- Technical implementation details -->
-- 
-- 
+- Edit SQL in Power Query
+- UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
 
-## Testing Performed
+##### Testing Performed
 <!-- Describe tests you've performed -->
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [x] Manual testing performed
 - [x] All existing tests pass
 
-### Test Cases:
+##### Test Cases:
 | Test Scenario | Expected Result | Actual Result | Status |
 |--------------|----------------|---------------|--------|
 |              |                |               |        |
 
-## Screenshots/Recordings
+##### Screenshots/Recordings
 <!-- Add screenshots or screen recordings if applicable -->
 - 
 
-## Database Changes
+##### Database Changes
 - [x] No database changes
 - [ ] Migration added
 - [ ] Data migration needed
 - [ ] Updated entity models
 
-### Migration Script:
-#### sql
+##### Migration Script:
+##### sql
 -- Add SQL changes here
  
 
-## API Changes
+##### API Changes
 - [ ] No API changes
 - [ ] New endpoints added
 - [ ] Existing endpoints modified
 - [ ] Breaking changes to API
 
-### API Documentation:
-## yaml
-# Example of API changes
+##### API Documentation:
+##### yaml
+##### Example of API changes
  
 
-## Deployment Notes
+##### Deployment Notes
 <!-- Any special deployment instructions -->
 - 
 
-## Checklist
+##### Checklist
 - [ ] My code follows the project's coding standards
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -1045,32 +1313,31 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published
 
-## Review Focus Areas
+##### Review Focus Areas
 <!-- Highlight areas you want reviewers to pay special attention to -->
-1. 
-2. 
-3. 
+1. Edit SQL in Power Query Areas
+2. ADD new SQL in Power Query Areas
+3. Delete bug Query Areas
  
-
 ---
 
-## **2. CODE REVIEW CHECKLIST TEMPLATE (English)**
+##### **2. CODE REVIEW CHECKLIST TEMPLATE (English)**
 
-### **Reviewer Assignment:**
+##### **Reviewer Assignment:**
 - **Primary Reviewer:** @
 - **Secondary Reviewer:** @
 - **QA Reviewer:** @
 - **Security Reviewer:** @
 
-### **Review Status:** 
+##### **Review Status:** 
 - [x] **Review in Progress**
 - [ ] **Changes Requested**
 - [ ] **Approved**
 - [ ] **Rejected**
 
-### **REVIEW CHECKLIST:**
+##### **REVIEW CHECKLIST:**
 
-#### **A. CODE QUALITY & STANDARDS**
+##### **A. CODE QUALITY & STANDARDS**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **1. Code follows project coding standards** | ⬜ Pass ⬜ Fail | |
@@ -1083,7 +1350,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **8. Comments exist for complex logic** | ⬜ Pass ⬜ Fail | |
 | **9. No commented-out code** | ⬜ Pass ⬜ Fail | |
 
-#### **B. JAVA & SPRING SPECIFIC**
+##### **B. JAVA & SPRING SPECIFIC**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **10. Proper dependency injection (constructor)** | ⬜ Pass ⬜ Fail | |
@@ -1096,7 +1363,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **17. Streams used appropriately** | ⬜ Pass ⬜ Fail | |
 | **18. Immutable objects where possible** | ⬜ Pass ⬜ Fail | |
 
-#### **C. SPRING BOOT & REST API**
+##### **C. SPRING BOOT & REST API**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **19. Proper RESTful design** | ⬜ Pass ⬜ Fail | |
@@ -1108,7 +1375,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **25. API versioning implemented** | ⬜ Pass ⬜ Fail | |
 | **26. Pagination for list endpoints** | ⬜ Pass ⬜ Fail | |
 
-#### **D. DATABASE & JPA**
+##### **D. DATABASE & JPA**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **27. Proper entity design (JPA annotations)** | ⬜ Pass ⬜ Fail | |
@@ -1120,7 +1387,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **33. Audit fields (createdAt, updatedAt)** | ⬜ Pass ⬜ Fail | |
 | **34. Optimistic locking (@Version) where needed** | ⬜ Pass ⬜ Fail | |
 
-#### **E. SECURITY**
+##### **E. SECURITY**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **35. No sensitive data in logs** | ⬜ Pass ⬜ Fail | |
@@ -1132,7 +1399,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **41. CORS configuration** | ⬜ Pass ⬜ Fail | |
 | **42. Password hashing (BCrypt)** | ⬜ Pass ⬜ Fail | |
 
-#### **F. PERFORMANCE**
+##### **F. PERFORMANCE**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **43. Efficient database queries** | ⬜ Pass ⬜ Fail | |
@@ -1142,7 +1409,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **47. Batch operations for bulk data** | ⬜ Pass ⬜ Fail | |
 | **48. Connection pooling configured** | ⬜ Pass ⬜ Fail | |
 
-#### **G. TESTING**
+##### **G. TESTING**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **49. Unit tests cover new functionality** | ⬜ Pass ⬜ Fail | |
@@ -1154,7 +1421,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **55. Edge cases tested** | ⬜ Pass ⬜ Fail | |
 | **56. Performance tests if applicable** | ⬜ Pass ⬜ Fail | |
 
-#### **H. IOT SPECIFIC (if applicable)**
+##### **H. IOT SPECIFIC (if applicable)**
 | Check Item | Status | Comments |
 |------------|--------|----------|
 | **57. Device authentication secure** | ⬜ Pass ⬜ Fail | |
@@ -1164,7 +1431,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **61. Data retention policy** | ⬜ Pass ⬜ Fail | |
 | **62. Device state management** | ⬜ Pass ⬜ Fail | |
 
-### **REVIEW SCORING:**
+##### **REVIEW SCORING:**
 | Category | Score (1-5) | Weight | Weighted Score |
 |----------|-------------|--------|----------------|
 | Code Quality | | 25% | |
@@ -1176,29 +1443,29 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 
 **Overall Score:** ⬜ **Excellent (90-100%)** ⬜ **Good (75-89%)** ⬜ **Needs Improvement (60-74%)** ⬜ **Poor (<60%)**
 
-### **REVIEWER COMMENTS:**
+##### **REVIEWER COMMENTS:**
 
-#### **Positive Feedback:**
+##### **Positive Feedback:**
 1. 
 2. 
 3. 
 
-#### **Issues Found:**
+##### **Issues Found:**
 | Line | File | Issue | Severity | Suggestion |
 |------|------|-------|----------|------------|
 | | | | ⬜ Critical ⬜ High ⬜ Medium ⬜ Low | |
 | | | | ⬜ Critical ⬜ High ⬜ Medium ⬜ Low | |
 | | | | ⬜ Critical ⬜ High ⬜ Medium ⬜ Low | |
 
-#### **Security Vulnerabilities:**
+##### **Security Vulnerabilities:**
 - [ ] No security issues found
 - [ ] Security issues identified (see details above)
 
-#### **Technical Debt:**
+##### **Technical Debt:**
 - [ ] No new technical debt introduced
 - [ ] Technical debt identified (document in JIRA)
 
-### **REVIEW DECISION:**
+##### **REVIEW DECISION:**
 - [ ] **✅ APPROVE** - Ready to merge
 - [ ] **⚠️ APPROVE WITH COMMENTS** - Minor issues, can merge after addressing
 - [ ] **🔄 REQUEST CHANGES** - Significant issues, needs rework
@@ -1209,22 +1476,22 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 
 ---
 
-# **ภาษาไทย (Thai Version)**
+##### **ภาษาไทย (Thai Version)**
 
-## **1. เทมเพลต PULL REQUEST**
+##### **1. เทมเพลต PULL REQUEST**
 
-### **รูปแบบหัวข้อ PR:**
+##### **รูปแบบหัวข้อ PR:**
  
 - [ประเภท] คำอธิบายสั้นๆ ของการเปลี่ยนแปลง
  
 **ประเภท:** `feat` (ฟีเจอร์ใหม่), `fix` (แก้ไขบั๊ก), `docs` (เอกสาร), `style` (รูปแบบ), `refactor` (ปรับโครงสร้าง), `test` (ทดสอบ), `chore` (งานดูแล), `perf` (ประสิทธิภาพ), `ci` (integration), `build` (build system)
 
-### **เทมเพลตรายละเอียด PR:**
+##### **เทมเพลตรายละเอียด PR:**
  
-## คำอธิบาย
+##### คำอธิบาย
 <!-- อธิบายวัตถุประสงค์ของ PR นี้ -->
 
-## ประเภทของการเปลี่ยนแปลง
+##### ประเภทของการเปลี่ยนแปลง
 - [ ] ฟีเจอร์ใหม่ (ไม่ breaking change)
 - [x] แก้ไขบั๊ก (ไม่ breaking change)
 - [x] Breaking change (การเปลี่ยนแปลงที่ทำให้ฟังก์ชันการทำงานเดิมไม่ทำงานตามที่คาดหวัง)
@@ -1234,65 +1501,65 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - [ ] เพิ่มการทดสอบ
 - [ ] อื่นๆ (โปรดระบุ):
 
-## Issue ที่เกี่ยวข้อง
+##### Issue ที่เกี่ยวข้อง
 <!-- ลิงก์ไปยัง JIRA tickets หรือ GitHub issues -->
-- แก้ไข #<หมายเลข issue>
-- เกี่ยวข้องกับ #<หมายเลข issue>
+- แก้ไข <หมายเลข issue>
+- เกี่ยวข้องกับ <หมายเลข issue>
 
-## การเปลี่ยนแปลงที่ทำ
+##### การเปลี่ยนแปลงที่ทำ
 <!-- รายการการเปลี่ยนแปลงเฉพาะ -->
 1. 
 2. 
 3. 
 
-## รายละเอียดทางเทคนิค
+##### รายละเอียดทางเทคนิค
 <!-- รายละเอียดการ implement -->
 - 
 - 
 
-## การทดสอบที่ทำ
+##### การทดสอบที่ทำ
 <!-- อธิบายการทดสอบที่ทำ -->
 - [ ] เพิ่ม/อัพเดท unit tests
 - [ ] เพิ่ม/อัพเดท integration tests
 - [ ] ทดสอบด้วยมือ
 - [ ] ทุก test เดิมผ่าน
 
-### กรณีทดสอบ:
+##### กรณีทดสอบ:
 | สถานการณ์ทดสอบ | ผลลัพธ์ที่คาดหวัง | ผลลัพธ์จริง | สถานะ |
-|----------------|------------------|-------------|--------|
-|                |                  |             |        |
+|----------------|-------------------|-------------|--------|
+|  load ช้า 10 วิ  | load ไม่เกิน 5 วิ    |  load  6 วิ  | ปกติ   |
 
-## ภาพหน้าจอ/การบันทึกวิดีโอ
+##### ภาพหน้าจอ/การบันทึกวิดีโอ
 <!-- เพิ่มภาพหน้าจอหรือวิดีโอถ้ามี -->
 - 
 
-## การเปลี่ยนแปลงฐานข้อมูล
+##### การเปลี่ยนแปลงฐานข้อมูล
 - [ ] ไม่มีการเปลี่ยนแปลงฐานข้อมูล
 - [ ] เพิ่ม migration
 - [ ] ต้องการ data migration
 - [ ] อัพเดท entity models
 
-### สคริปต์ Migration:
+##### สคริปต์ Migration:
 - sql
 -- เพิ่มการเปลี่ยนแปลง SQL ที่นี่
  
 
-## การเปลี่ยนแปลง API
+##### การเปลี่ยนแปลง API
 - [ ] ไม่มีการเปลี่ยนแปลง API
 - [ ] เพิ่ม endpoint ใหม่
 - [ ] แก้ไข endpoint ที่มีอยู่
 - [ ] Breaking changes ต่อ API
 
-### เอกสาร API:
+##### เอกสาร API:
 -yaml
-# ตัวอย่างการเปลี่ยนแปลง API
+##### ตัวอย่างการเปลี่ยนแปลง API
 -
 
-## หมายเหตุการ deploy
+##### หมายเหตุการ deploy
 <!-- คำแนะนำพิเศษสำหรับการ deploy -->
 - 
 
-## Checklist
+##### Checklist
 - [ ] โค้ดของฉันเป็นไปตามมาตรฐานของโปรเจค
 - [ ] ฉันได้ตรวจสอบโค้ดของตัวเองแล้ว
 - [ ] ฉันได้เพิ่ม comment ในส่วนที่เข้าใจยาก
@@ -1302,7 +1569,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 - [ ] Test ทั้งใหม่และเดิมผ่านเมื่อรันในเครื่อง
 - [ ] การเปลี่ยนแปลงที่เกี่ยวข้องอื่นๆ ได้ถูก merge และ publish แล้ว
 
-## จุดที่ต้องการให้ reviewer เน้น
+##### จุดที่ต้องการให้ reviewer เน้น
 <!-- ระบุจุดที่ต้องการให้ reviewer ให้ความสนใจเป็นพิเศษ -->
 1. 
 2. 
@@ -1311,23 +1578,23 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 
 ---
 
-## **2. เทมเพลตตรวจสอบโค้ด (CODE REVIEW CHECKLIST)**
+##### **2. เทมเพลตตรวจสอบโค้ด (CODE REVIEW CHECKLIST)**
 
-### **ผู้ตรวจสอบ:**
+##### **ผู้ตรวจสอบ:**
 - **ผู้ตรวจสอบหลัก:** @
 - **ผู้ตรวจสอบรอง:** @
 - **ผู้ตรวจสอบ QA:** @
 - **ผู้ตรวจสอบความปลอดภัย:** @
 
-### **สถานะการตรวจสอบ:**
+##### **สถานะการตรวจสอบ:**
 - [ ] **กำลังตรวจสอบ**
 - [ ] **ขอให้แก้ไข**
 - [ ] **อนุมัติ**
 - [ ] **ปฏิเสธ**
 
-### **CHECKLIST การตรวจสอบ:**
+##### **CHECKLIST การตรวจสอบ:**
 
-#### **A. คุณภาพโค้ดและมาตรฐาน**
+##### **A. คุณภาพโค้ดและมาตรฐาน**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **1. โค้ดเป็นไปตามมาตรฐานของโปรเจค** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1340,7 +1607,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **8. มี comment สำหรับ logic ที่ซับซ้อน** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **9. ไม่มีโค้ดที่ถูก comment ออก** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-#### **B. JAVA & SPRING เฉพาะ**
+##### **B. JAVA & SPRING เฉพาะ**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **10. Dependency injection ที่ถูกต้อง (constructor)** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1353,7 +1620,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **17. ใช้ Streams อย่างเหมาะสม** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **18. ใช้ immutable objects เท่าที่ทำได้** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-#### **C. SPRING BOOT & REST API**
+##### **C. SPRING BOOT & REST API**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **19. ออกแบบ RESTful อย่างเหมาะสม** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1365,7 +1632,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **25. มี API versioning** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **26. มี pagination สำหรับ endpoints รายการ** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-#### **D. ฐานข้อมูลและ JPA**
+##### **D. ฐานข้อมูลและ JPA**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **27. ออกแบบ entity อย่างเหมาะสม (JPA annotations)** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1377,7 +1644,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **33. มีฟิลด์ audit (createdAt, updatedAt)** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **34. มี optimistic locking (@Version) ที่จำเป็น** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-#### **E. ความปลอดภัย**
+##### **E. ความปลอดภัย**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **35. ไม่มีข้อมูล sensitive ใน logs** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1389,7 +1656,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **41. ตั้งค่า CORS** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **42. การ hash รหัสผ่าน (BCrypt)** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-#### **F. ประสิทธิภาพ**
+##### **F. ประสิทธิภาพ**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **43. Database queries มีประสิทธิภาพ** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1399,7 +1666,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **47. Batch operations สำหรับข้อมูลจำนวนมาก** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **48. ตั้งค่า connection pooling** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-#### **G. การทดสอบ**
+##### **G. การทดสอบ**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **49. Unit tests คลุมฟังก์ชันการทำงานใหม่** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1411,7 +1678,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **55. ทดสอบ edge cases** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **56. ทดสอบประสิทธิภาพถ้ามี** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-#### **H. IoT เฉพาะ (ถ้ามี)**
+##### **H. IoT เฉพาะ (ถ้ามี)**
 | รายการตรวจสอบ | สถานะ | ความคิดเห็น |
 |---------------|--------|-------------|
 | **57. การยืนยันตัวตนอุปกรณ์ปลอดภัย** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
@@ -1421,7 +1688,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 | **61. นโยบายการเก็บข้อมูล** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 | **62. การจัดการสถานะอุปกรณ์** | ⬜ ผ่าน ⬜ ไม่ผ่าน | |
 
-### **การให้คะแนน:**
+##### **การให้คะแนน:**
 | หมวดหมู่ | คะแนน (1-5) | น้ำหนัก | คะแนนถ่วงน้ำหนัก |
 |----------|-------------|--------|------------------|
 | คุณภาพโค้ด | | 25% | |
@@ -1433,29 +1700,29 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 
 **คะแนนรวม:** ⬜ **ยอดเยี่ยม (90-100%)** ⬜ **ดี (75-89%)** ⬜ **ต้องปรับปรุง (60-74%)** ⬜ **ไม่ดี (<60%)**
 
-### **ความคิดเห็นผู้ตรวจสอบ:**
+##### **ความคิดเห็นผู้ตรวจสอบ:**
 
-#### **ข้อดี:**
+##### **ข้อดี:**
 1. 
 2. 
 3. 
 
-#### **ปัญหาที่พบ:**
+##### **ปัญหาที่พบ:**
 | บรรทัด | ไฟล์ | ปัญหา | ความรุนแรง | คำแนะนำ |
 |--------|------|-------|------------|---------|
 | | | | ⬜ รุนแรงมาก ⬜ รุนแรง ⬜ ปานกลาง ⬜ ต่ำ | |
 | | | | ⬜ รุนแรงมาก ⬜ รุนแรง ⬜ ปานกลาง ⬜ ต่ำ | |
 | | | | ⬜ รุนแรงมาก ⬜ รุนแรง ⬜ ปานกลาง ⬜ ต่ำ | |
 
-#### **ช่องโหว่ความปลอดภัย:**
+##### **ช่องโหว่ความปลอดภัย:**
 - [x] ไม่พบปัญหาความปลอดภัย
 - [ ] พบปัญหาความปลอดภัย (ดูรายละเอียดด้านบน)
 
-#### **หนี้ทางเทคนิค:**
+##### **หนี้ทางเทคนิค:**
 - [ ] ไม่ได้สร้างหนี้ทางเทคนิคใหม่
 - [ ] พบหนี้ทางเทคนิค (บันทึกใน JIRA)
 
-### **การตัดสินใจ:**
+##### **การตัดสินใจ:**
 - [ ] **✅ อนุมัติ** - พร้อม merge
 - [ ] **⚠️ อนุมัติพร้อมความคิดเห็น** - ปัญหาเล็กน้อย สามารถ merge ได้หลังแก้ไข
 - [ ] **🔄 ขอให้แก้ไข** - ปัญหาสำคัญ ต้องปรับปรุงใหม่
@@ -1466,33 +1733,33 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 
 ---
 
-## **3. EXCEL TEMPLATE STRUCTURE**
+##### **3. EXCEL TEMPLATE STRUCTURE**
 
-### **ไฟล์: `code-review-checklist.xlsx`**
+##### **ไฟล์: `code-review-checklist.xlsx`**
 
-#### **แผ่นงาน 1: PR Dashboard**
+##### **แผ่นงาน 1: PR Dashboard**
 -excel
 | PR ID | Title | Author | Date | Status | Primary Reviewer | Score | Link |
 |-------|-------|--------|------|--------|------------------|-------|------|
  
 
-#### **แผ่นงาน 2: Review Checklist (ใช้ข้อมูลจาก template ด้านบน)**
+##### **แผ่นงาน 2: Review Checklist (ใช้ข้อมูลจาก template ด้านบน)**
 
-#### **แผ่นงาน 3: Metrics**
+##### **แผ่นงาน 3: Metrics**
 - excel
 | Reviewer | PRs Reviewed | Avg. Score | Avg. Time | Critical Issues Found |
 |----------|--------------|------------|-----------|-----------------------|
 
 
-#### **แผ่นงาน 4: Issues Tracking**
+##### **แผ่นงาน 4: Issues Tracking**
 - excel
 | PR ID | Issue Type | Severity | File | Line | Status | Fixed Date |
 |-------|------------|----------|------|------|--------|------------|
 
 
-## **4. BEST PRACTICES FOR REVIEWERS**
+##### **4. BEST PRACTICES FOR REVIEWERS**
 
-### **ภาษาอังกฤษ:**
+##### **ภาษาอังกฤษ:**
 1. **Be constructive, not critical** - Focus on the code, not the person
 2. **Explain the "why"** - Don't just say it's wrong, explain why
 3. **Use code suggestions** - Provide specific code examples
@@ -1502,7 +1769,7 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 7. **Check for tests** - No code change without tests
 8. **Consider security implications** - Always think about security
 
-### **ภาษาไทย:**
+##### **ภาษาไทย:**
 1. **วิจารณ์อย่างสร้างสรรค์** - โฟกัสที่โค้ด ไม่ใช่ที่คน
 2. **อธิบาย "ทำไม"** - ไม่ใช่แค่บอกว่าผิด แต่ต้องอธิบายว่าทำไม
 3. **ให้คำแนะนำที่เป็นโค้ด** - ให้ตัวอย่างโค้ดที่เฉพาะเจาะจง
@@ -1514,11 +1781,11 @@ public interface AnalyticsRepository extends ElasticsearchRepository<BusinessEve
 
 ---
 
-## **5. AUTOMATED CHECKS PRE-REVIEW**
+##### **5. AUTOMATED CHECKS PRE-REVIEW**
 
-### **สำหรับ Git Hooks หรือ CI/CD:**
+##### **สำหรับ Git Hooks หรือ CI/CD:**
 yaml
-# .pre-commit-config.yaml
+##### .pre-commit-config.yaml
 repos:
   - repo: https://github.com/checkstyle/checkstyle
     rev: 10.12.5
@@ -1542,7 +1809,7 @@ repos:
       - id: gitleaks
 
 
-### **สำหรับ Maven/Gradle:**
+##### **สำหรับ Maven/Gradle:**
 xml
 <!-- pom.xml -->
 <plugins>
